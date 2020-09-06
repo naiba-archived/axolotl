@@ -16,10 +16,12 @@ axios.interceptors.response.use(function (response) {
         throw new Error(response.statusText);
     }
     const { code, msg } = response.data;
-    if (!code) return response; // 请求正常
+    if (!code) return response.data.data || {}; // 请求正常
     if (code == 10001) { // 未授权
         store.dispatch('logout')
-        router.push("/");
+        return {};
     }
     throw new Error(msg);
 });
+
+export default axios;

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/allegro/bigcache"
@@ -55,6 +56,14 @@ func init() {
 	util.Infof("Up with config: %+v cache-cap:%d\n", config, cache.Capacity())
 }
 
+func requireLogin(c *fiber.Ctx) {
+	if c.Locals(keyAuthorizedUser) == nil {
+		c.Next(bizerr.UnAuthorizedError)
+		return
+	}
+	c.Next()
+}
+
 func main() {
 	oauth2config = &oauth2.Config{
 		ClientID:     config.GitHub.ClientID,
@@ -83,7 +92,7 @@ func main() {
 	{
 		api.Use(func(c *fiber.Ctx) {
 			sid := c.Cookies("sid")
-			if sid == "" {
+			if sid == "" || strings.TrimSpace(sid) == "" {
 				c.Next()
 				return
 			}
@@ -98,17 +107,19 @@ func main() {
 
 		user := api.Group("/user")
 		{
-			user.Use(func(c *fiber.Ctx) {
-				if c.Locals(keyAuthorizedUser) == nil {
-					c.Next(bizerr.UnAuthorizedError)
-					return
-				}
-				c.Next()
-			})
+			user.Use(requireLogin)
 			user.Get("/", func(c *fiber.Ctx) {
 				c.JSON(model.Response{
 					Data: c.Locals(keyAuthorizedUser),
 				})
+			})
+			user.Post("/logout", func(c *fiber.Ctx) {
+				user := c.Locals(keyAuthorizedUser).(model.User)
+				user.Sid = ""
+				if err := db.Save(&user).Error; err != nil {
+					c.Next(err)
+					return
+				}
 			})
 		}
 
@@ -147,6 +158,8 @@ func main() {
 					c.Next(err)
 					return
 				}
+
+				// TODO check if is new user
 
 				var user model.User
 				user.GithubID = data.GetID()

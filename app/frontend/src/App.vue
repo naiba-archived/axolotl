@@ -18,9 +18,9 @@ export default Vue.extend({
   components: {
     Navbar
   },
-  mounted() {
+  async mounted() {
     halfmoon.onDOMContentLoaded();
-    document.title = "Hello Engineer";
+    await this.$store.dispatch("fetchUser");
   }
 });
 </script>
