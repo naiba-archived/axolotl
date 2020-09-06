@@ -15,4 +15,6 @@
 # vendor/
 
 .DS_Store
+*.db
 config.yaml
+dist

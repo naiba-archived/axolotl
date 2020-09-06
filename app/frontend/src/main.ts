@@ -9,7 +9,6 @@ import { faLanguage } from '@fortawesome/free-solid-svg-icons'
 import { faGithub } from '@fortawesome/free-brands-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 library.add(faLanguage, faGithub)
-console.log(library)
 Vue.component('font-awesome-icon', FontAwesomeIcon)
 
 // halfmoon
