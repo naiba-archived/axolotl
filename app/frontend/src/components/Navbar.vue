@@ -1,23 +1,27 @@
 <template>
   <nav class="navbar">
     <div class="container">
-      <a href="#" class="navbar-brand">
+      <a href="javascript:void(0)" @click="to('/')" class="navbar-brand">
         <img src="/favicon.png" alt="Hello Engineer" />
         Hello Engineer
       </a>
       <ul class="navbar-nav d-none d-flex">
         <li class="nav-item active">
-          <a href="#" class="nav-link">Docs</a>
+          <a href="javascript:void(0)" class="nav-link">Docs</a>
         </li>
         <li class="nav-item">
-          <a href="#" class="nav-link">Products</a>
+          <a href="javascript:void(0)" class="nav-link">Products</a>
         </li>
       </ul>
       <div class="d-none d-flex ml-auto">
+        <button class="btn btn-action mr-5" type="button" @click="toggleDarkMode">
+          <font-awesome-icon v-if="!darkMode" :icon="['fa', 'moon']" />
+          <font-awesome-icon v-if="darkMode" :icon="['fa', 'sun']" />
+        </button>
         <button v-if="!user.id" @click="login" class="btn btn-primary" type="submit">
           <font-awesome-icon :icon="['fab', 'github']" />&nbsp;Sign in
         </button>
-        <div v-if="user.id" class="dropdown toggle-on-hover">
+        <div v-if="user.id" class="dropdown with-arrow toggle-on-hover">
           <button
             class="btn logged-in-btn"
             data-toggle="dropdown"
@@ -31,7 +35,7 @@
             <font-awesome-icon :icon="['fa', 'angle-down']" class="ml-5" aria-hidden="true" />
           </button>
           <div class="dropdown-menu">
-            <a href="#" @click="logout" class="dropdown-item">Logout</a>
+            <a href="javascript:void(0)" @click="logout" class="dropdown-item">Logout</a>
           </div>
         </div>
       </div>
@@ -47,7 +51,8 @@ export default Vue.extend({
   name: "Navbar",
   computed: {
     ...mapState({
-      user: "user"
+      user: "user",
+      darkMode: "darkMode"
     })
   },
   methods: {
@@ -56,6 +61,14 @@ export default Vue.extend({
     },
     logout() {
       this.$store.dispatch("logout");
+    },
+    to(path: any) {
+      if (this.$router.currentRoute.path !== path) {
+        this.$router.push(path);
+      }
+    },
+    toggleDarkMode() {
+      this.$store.dispatch("toggleDarkMode");
     }
   }
 });

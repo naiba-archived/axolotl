@@ -1,11 +1,7 @@
 <template>
-  <div class="page-wrapper with-navbar">
+  <div>
     <Navbar />
-    <div class="content-wrapper">
-      <div class="container">
-        <router-view />
-      </div>
-    </div>
+    <router-view />
   </div>
 </template>
 

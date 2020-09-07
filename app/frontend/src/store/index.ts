@@ -3,6 +3,7 @@ import Vuex from "vuex";
 import createPersistedState from "vuex-persistedstate";
 import { fetchUser, logout } from '@/api/user';
 import router from '@/router';
+import halfmoon from "halfmoon";
 
 Vue.use(Vuex);
 
@@ -12,6 +13,7 @@ export enum Authority {
 
 export default new Vuex.Store({
   state: {
+    darkMode: halfmoon.readCookie("darkModeOn") == "yes",
     user: {
       id: Number,
       nickname: String,
@@ -33,6 +35,10 @@ export default new Vuex.Store({
       await logout();
       commit('update', { user: {} })
       if (router.currentRoute.path != "/") router.push("/");
+    },
+    async toggleDarkMode({ commit }) {
+      halfmoon.toggleDarkMode();
+      commit('update', { darkMode: halfmoon.readCookie("darkModeOn") == "yes", })
     }
   },
   modules: {},
