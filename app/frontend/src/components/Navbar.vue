@@ -6,11 +6,12 @@
         Hello Engineer
       </a>
       <ul class="navbar-nav d-none d-flex">
-        <li class="nav-item active">
-          <a href="javascript:void(0)" class="nav-link">Docs</a>
-        </li>
         <li class="nav-item">
-          <a href="javascript:void(0)" class="nav-link">Products</a>
+          <a
+            href="javascript:void(0)"
+            @click="wOpen('https://github.com/naiba/helloengineer')"
+            class="nav-link"
+          >Source Code</a>
         </li>
       </ul>
       <div class="d-none d-flex ml-auto">
@@ -56,6 +57,9 @@ export default Vue.extend({
     })
   },
   methods: {
+    wOpen(url: string) {
+      window.open(url);
+    },
     login() {
       window.location.href = "/api/oauth2/login";
     },

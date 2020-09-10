@@ -1,7 +1,7 @@
 import Vue from "vue";
 import Vuex from "vuex";
 import createPersistedState from "vuex-persistedstate";
-import { fetchUser, logout } from '@/api/user';
+import { fetchUser, logout as logoutReq } from '@/api/user';
 import router from '@/router';
 import halfmoon from "halfmoon";
 
@@ -28,11 +28,17 @@ export default new Vuex.Store({
   },
   actions: {
     async fetchUser({ commit }) {
-      const user = await fetchUser()
-      commit('update', { user })
+      try {
+        const user = await fetchUser()
+        commit('update', { user })
+      } catch (error) {
+        console.log('fetchUser', error)
+        commit('update', { user: {} })
+        if (router.currentRoute.path != "/") router.push("/");
+      }
     },
     async logout({ commit }) {
-      await logout();
+      await logoutReq();
       commit('update', { user: {} })
       if (router.currentRoute.path != "/") router.push("/");
     },

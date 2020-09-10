@@ -28,7 +28,7 @@ module.exports = {
   devServer: {
     disableHostCheck: true,
     proxy: {
-      '/api': proxyConfig,
+      '^/api': proxyConfig,
     },
   },
 };

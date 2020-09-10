@@ -15,7 +15,7 @@ const routes: Array<RouteConfig> = [
     component: Home
   },
   {
-    path: "/meeting",
+    path: "/meeting/:id",
     name: "Meeting",
     meta: {
       title: "Meeting"
