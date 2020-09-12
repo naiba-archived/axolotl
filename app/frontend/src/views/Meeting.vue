@@ -2,11 +2,7 @@
   <div>
     <div id="vditor"></div>
     <Hello v-if="selfPeer.streams" :stream="selfPeer.streams[0]" />
-    <Hello
-      v-for="(peer, index) in peers"
-      :stream="peer.streams[0]"
-      v-bind:key="index"
-    />
+    <Hello v-for="(peer, index) in peers" :stream="peer.streams[0]" v-bind:key="index" />
   </div>
 </template>
 
@@ -63,13 +59,13 @@ export default Vue.extend({
         stream: stream
       });
       console.log("selfPeer", this.selfPeer);
-      this.selfPeer.on("signal", data => {
+      this.selfPeer.on("signal", (data: any) => {
         ws.send(JSON.stringify({ type: 0, data: JSON.stringify(data) }));
       });
-      this.selfPeer.on("connect", data => {
+      this.selfPeer.on("connect", (data: any) => {
         console.log("onConnect", data);
       });
-      this.selfPeer.on("stream", data => {
+      this.selfPeer.on("stream", (data: any) => {
         console.log("onStream", data);
       });
     };

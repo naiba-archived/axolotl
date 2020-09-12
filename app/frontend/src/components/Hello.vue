@@ -14,7 +14,7 @@ export default Vue.extend({
     stream: MediaStream
   },
   mounted() {
-    this.$refs.cam.srcObject = this.stream;
+    (this.$refs.cam as any).srcObject = this.stream;
   }
 });
 </script>
