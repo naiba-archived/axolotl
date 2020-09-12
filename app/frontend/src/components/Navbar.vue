@@ -11,15 +11,25 @@
             href="javascript:void(0)"
             @click="wOpen('https://github.com/naiba/helloengineer')"
             class="nav-link"
-          >Source Code</a>
+            >Source Code</a
+          >
         </li>
       </ul>
       <div class="d-none d-flex ml-auto">
-        <button class="btn btn-action mr-5" type="button" @click="toggleDarkMode">
+        <button
+          class="btn btn-action mr-5"
+          type="button"
+          @click="toggleDarkMode"
+        >
           <font-awesome-icon v-if="!darkMode" :icon="['fa', 'moon']" />
           <font-awesome-icon v-if="darkMode" :icon="['fa', 'sun']" />
         </button>
-        <button v-if="!user.id" @click="login" class="btn btn-primary" type="submit">
+        <button
+          v-if="!user.id"
+          @click="login"
+          class="btn btn-primary"
+          type="submit"
+        >
           <font-awesome-icon :icon="['fab', 'github']" />&nbsp;Sign in
         </button>
         <div v-if="user.id" class="dropdown with-arrow toggle-on-hover">
@@ -32,11 +42,17 @@
             aria-expanded="false"
           >
             <font-awesome-icon :icon="['fab', 'github']" />
-            <p>{{user.nickname}}</p>
-            <font-awesome-icon :icon="['fa', 'angle-down']" class="ml-5" aria-hidden="true" />
+            <p>{{ user.nickname }}</p>
+            <font-awesome-icon
+              :icon="['fa', 'angle-down']"
+              class="ml-5"
+              aria-hidden="true"
+            />
           </button>
           <div class="dropdown-menu">
-            <a href="javascript:void(0)" @click="logout" class="dropdown-item">Logout</a>
+            <a href="javascript:void(0)" @click="logout" class="dropdown-item"
+              >Logout</a
+            >
           </div>
         </div>
       </div>

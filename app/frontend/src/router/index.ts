@@ -1,7 +1,7 @@
 import Vue from "vue";
 import VueRouter, { RouteConfig } from "vue-router";
 import Home from "../views/Home.vue";
-import { nextTick } from 'vue/types/umd';
+import { nextTick } from "vue/types/umd";
 
 Vue.use(VueRouter);
 
@@ -10,7 +10,7 @@ const routes: Array<RouteConfig> = [
     path: "/",
     name: "Home",
     meta: {
-      title: 'Home',
+      title: "Home"
     },
     component: Home
   },
@@ -20,8 +20,7 @@ const routes: Array<RouteConfig> = [
     meta: {
       title: "Meeting"
     },
-    component: () =>
-      import("../views/Meeting.vue")
+    component: () => import("../views/Meeting.vue")
   }
 ];
 
@@ -31,9 +30,10 @@ const router = new VueRouter({
   routes
 });
 
-router.beforeEach(function (from, to, next) {
-  document.title = (from.meta.title ? from.meta.title + ' | ' : '') + 'Hello Engineer'
-  next()
-})
+router.beforeEach(function(from, to, next) {
+  document.title =
+    (from.meta.title ? from.meta.title + " | " : "") + "Hello Engineer";
+  next();
+});
 
 export default router;

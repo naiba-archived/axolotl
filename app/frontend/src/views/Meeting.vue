@@ -2,7 +2,11 @@
   <div>
     <div id="vditor"></div>
     <Hello v-if="selfPeer.streams" :stream="selfPeer.streams[0]" />
-    <Hello v-for="(peer,index) in peers" :stream="peer.streams[0]" v-bind:key="index" />
+    <Hello
+      v-for="(peer, index) in peers"
+      :stream="peer.streams[0]"
+      v-bind:key="index"
+    />
   </div>
 </template>
 
@@ -44,7 +48,7 @@ export default Vue.extend({
 
     // init websocket
     const ws = new WebSocket("wss://ed130909ea27.ngrok.io/ws/1");
-    console.log(ws, navigator.mediaDevices.getUserMedia)
+    console.log(ws, navigator.mediaDevices.getUserMedia);
     ws.onopen = async (e: any) => {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {
@@ -71,9 +75,10 @@ export default Vue.extend({
     };
     ws.onmessage = (e: any) => {
       const data = JSON.parse(e.data);
+      let signal;
       switch (data.type) {
         case 0:
-          const signal = JSON.parse(data.data);
+          signal = JSON.parse(data.data);
           console.log("remote signal", signal);
           this.selfPeer.signal(signal);
           break;
@@ -85,9 +90,9 @@ export default Vue.extend({
 
     // on close warning
     window.onbeforeunload = function(e: any) {
-      var e = e || window.event;
-      if (e) {
-        e.returnValue = "ATTENTION REQUIRED";
+      const ee = e || window.event;
+      if (ee) {
+        ee.returnValue = "ATTENTION REQUIRED";
       }
       return "ATTENTION REQUIRED";
     };

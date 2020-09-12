@@ -15,7 +15,6 @@ jobs:
         run: |
           cd app/frontend
           npm i
-          npm run api
           npm run build
       - name: move dist files
         run: |
