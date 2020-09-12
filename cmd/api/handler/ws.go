@@ -21,8 +21,8 @@ const (
 )
 
 type Msg struct {
-	Type uint
-	Data string
+	Type uint   `json:"type"`
+	Data string `json:"data"`
 }
 
 func WS() func(c *websocket.Conn) {
@@ -38,7 +38,10 @@ func WS() func(c *websocket.Conn) {
 		var err error
 		for {
 			err = c.ReadJSON(&m)
-			if websocket.IsCloseError(err) || websocket.IsUnexpectedCloseError(err) {
+			if err != nil {
+				if !websocket.IsCloseError(err) && !websocket.IsUnexpectedCloseError(err) {
+					util.Infof(0, "websocket error: %+v", err)
+				}
 				c.Close()
 				break
 			}
@@ -53,6 +56,7 @@ func WS() func(c *websocket.Conn) {
 					pubsub.Broadcast <- hub.Message{
 						Topic: roomID,
 						Data:  data,
+						From:  c,
 					}
 				}
 			}

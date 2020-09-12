@@ -1,0 +1,30 @@
+name: Build Docker Image
+
+on: [push]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - name: Use Node.js 14.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14.x
+      - name: npm install, build, and test
+        run: |
+          cd app/frontend
+          npm i
+          npm run api
+          npm run build
+      - name: move dist files
+        run: |
+          mkdir dist/
+          mv app/frontend/dist/* dist/
+      - name: docker push
+        env:
+          DockerPassword: ${{ secrets.PACKAGE_TOKEN }}
+        run: |
+          docker build --no-cache -t docker.pkg.github.com/naiba/dockerfiles/helloengineer .
+          docker login -u naiba -p $DockerPassword docker.pkg.github.com
+          docker push docker.pkg.github.com/naiba/dockerfiles/helloengineer

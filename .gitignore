@@ -15,6 +15,5 @@
 # vendor/
 
 .DS_Store
-*.db
-config.yaml
+/cmd/api/data
 dist

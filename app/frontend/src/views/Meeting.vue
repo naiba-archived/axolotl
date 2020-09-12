@@ -1,6 +1,7 @@
 <template>
   <div>
     <div id="vditor"></div>
+    <Hello v-if="selfPeer.streams" :stream="selfPeer.streams[0]" />
     <Hello v-for="(peer,index) in peers" :stream="peer.streams[0]" v-bind:key="index" />
   </div>
 </template>
@@ -23,6 +24,7 @@ export default Vue.extend({
     return {
       vditor: {} as any,
       peers: [],
+      selfPeer: {} as any
     };
   },
   computed: {
@@ -41,9 +43,9 @@ export default Vue.extend({
     this.vditor = new Vditor("vditor", vditorConfig);
 
     // init websocket
-    const ws = new WebSocket("ws://localhost/ws/1");
+    const ws = new WebSocket("wss://ed130909ea27.ngrok.io/ws/1");
+    console.log(ws, navigator.mediaDevices.getUserMedia)
     ws.onopen = async (e: any) => {
-      console.log("onopen", e);
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {
           width: 160,
@@ -51,15 +53,34 @@ export default Vue.extend({
         },
         audio: true
       });
-      const peer = new Peer({
+      console.log("stream", stream);
+      this.selfPeer = new Peer({
         initiator: true,
-        trickle: false,
         stream: stream
       });
-      ws.send(JSON.stringify({ type: 0, data: JSON.stringify(this.peer1) }));
+      console.log("selfPeer", this.selfPeer);
+      this.selfPeer.on("signal", data => {
+        ws.send(JSON.stringify({ type: 0, data: JSON.stringify(data) }));
+      });
+      this.selfPeer.on("connect", data => {
+        console.log("onConnect", data);
+      });
+      this.selfPeer.on("stream", data => {
+        console.log("onStream", data);
+      });
     };
-    ws.onmessage = function(e: any) {
-      console.log("onmessage", e);
+    ws.onmessage = (e: any) => {
+      const data = JSON.parse(e.data);
+      switch (data.type) {
+        case 0:
+          const signal = JSON.parse(data.data);
+          console.log("remote signal", signal);
+          this.selfPeer.signal(signal);
+          break;
+
+        default:
+          break;
+      }
     };
 
     // on close warning

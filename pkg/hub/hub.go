@@ -9,6 +9,7 @@ import (
 type Message struct {
 	Data  []byte
 	Topic string
+	From  *websocket.Conn
 }
 
 type Subscription struct {
@@ -69,6 +70,9 @@ func (h *Hub) Serve() {
 
 			for c := range connections {
 				if c.Conn != nil {
+					if c == m.From {
+						continue
+					}
 					if err := c.WriteMessage(websocket.TextMessage, m.Data); err != nil {
 						continue
 					}

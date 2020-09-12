@@ -27,7 +27,7 @@ var (
 )
 
 func init() {
-	data, err := ioutil.ReadFile("config.yaml")
+	data, err := ioutil.ReadFile("data/config.yaml")
 	if err != nil {
 		panic(err)
 	}
@@ -40,7 +40,7 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-	db, err = gorm.Open(sqlite.Open("helloengineer.db"), nil)
+	db, err = gorm.Open(sqlite.Open("data/helloengineer.db"), nil)
 	if err != nil {
 		panic(err)
 	}
@@ -73,7 +73,6 @@ func main() {
 
 		auth := api.Group("/oauth2")
 		{
-			auth.Use(handler.LoginRequired(false))
 			auth.Get("/login", handler.Oauth2Login(oauth2config, cache))
 			auth.Get("/callback", handler.Oauth2Callback(oauth2config, cache, db))
 		}

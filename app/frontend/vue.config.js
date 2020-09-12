@@ -24,6 +24,9 @@ const proxyConfig = {
 };
 
 module.exports = {
+  pluginOptions: {
+    vconsole: { enable: true }
+  },
   lintOnSave: false,
   devServer: {
     disableHostCheck: true,
