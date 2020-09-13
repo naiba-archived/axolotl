@@ -1,4 +1,7 @@
 FROM golang:alpine AS binarybuilder
+RUN apk --no-cache --no-progress add \
+    gcc \
+    musl-dev
 WORKDIR /helloengineer
 COPY . .
 RUN cd cmd/api \
@@ -6,8 +9,7 @@ RUN cd cmd/api \
 FROM alpine:latest
 RUN apk --no-cache --no-progress add \
     ca-certificates \
-    tzdata \
-    gcc
+    tzdata
 WORKDIR /helloengineer
 COPY dist /helloengineer/dist
 COPY --from=binarybuilder /helloengineer/cmd/api/api ./api
