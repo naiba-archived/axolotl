@@ -9,6 +9,8 @@ github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/fasthttp/websocket v1.4.3-beta.1 h1:stc4P2aoxYKsdmbe1AJ5mAm73Fxc1NOgrZpPftvZIXQ=
 github.com/fasthttp/websocket v1.4.3-beta.1/go.mod h1:JGrgLaT02bL9NuJkZbHN8mVV2tkCJZQh7yJ5/XCXO2g=
+github.com/gofiber/adaptor v0.2.0 h1:OJtST958Zc6WTXHTJA/9d464VgakAWKBjzM3lmkKjsc=
+github.com/gofiber/adaptor v0.2.0/go.mod h1:0M9Agxi+L3uS5oKd6pN317h35JQhfvrfD4H+c4a5qck=
 github.com/gofiber/fiber v1.13.3/go.mod h1:KxRvVkqzfZOO6A7mBu+j7ncX2AcT6Sm6F7oeGR3Kgmw=
 github.com/gofiber/fiber v1.14.5 h1:O+O6izufOW7bTmWxcSwaM4BB3Nn7gCNUdkiZLjP4qvM=
 github.com/gofiber/fiber v1.14.5/go.mod h1:Yw2ekF1YDPreO9V6TMYjynu94xRxZBdaa8X5HhHsjCM=

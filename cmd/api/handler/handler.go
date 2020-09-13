@@ -5,10 +5,11 @@ import (
 	"strings"
 
 	"github.com/gofiber/fiber"
+	"gorm.io/gorm"
+
 	"github.com/naiba/helloengineer/internal/bizerr"
 	"github.com/naiba/helloengineer/internal/model"
 	"github.com/naiba/helloengineer/pkg/util"
-	"gorm.io/gorm"
 )
 
 func AuthMiddleware(db *gorm.DB) fiber.Handler {

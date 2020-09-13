@@ -2,9 +2,14 @@ package main
 
 import (
 	"io/ioutil"
+	"net/http"
+	"net/http/httputil"
+	"net/url"
+	"os"
 	"time"
 
 	"github.com/allegro/bigcache"
+	"github.com/gofiber/adaptor"
 	"github.com/gofiber/fiber"
 	"github.com/gofiber/fiber/middleware"
 	"github.com/gofiber/websocket"
@@ -19,15 +24,24 @@ import (
 	"github.com/naiba/helloengineer/pkg/util"
 )
 
+const (
+	PROXY_ENABLE = "PROXY_ENABLE"
+)
+
 var (
 	oauth2config *oauth2.Config
 	config       *model.Config
 	cache        *bigcache.BigCache
 	db           *gorm.DB
+	frontendHost *url.URL
 )
 
 func init() {
 	data, err := ioutil.ReadFile("data/config.yaml")
+	if err != nil {
+		panic(err)
+	}
+	frontendHost, err = url.Parse("http://localhost:8080")
 	if err != nil {
 		panic(err)
 	}
@@ -84,8 +98,15 @@ func main() {
 		ws.Get("/:meetingID", websocket.New(handler.WS()))
 	}
 
-	app.Static("/", "dist")
-	app.Use(handler.NotFund)
+	if os.Getenv(PROXY_ENABLE) == "" {
+		app.Static("/", "dist")
+		app.Use(handler.NotFund)
+	} else {
+		app.Use(adaptor.HTTPHandlerFunc(func(req http.ResponseWriter, resp *http.Request) {
+			httputil.NewSingleHostReverseProxy(frontendHost).ServeHTTP(req, resp)
+		}))
+
+	}
 
 	app.Listen(":80")
 }

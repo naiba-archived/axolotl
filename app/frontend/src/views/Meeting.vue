@@ -1,7 +1,7 @@
 <template>
   <div>
     <div id="vditor"></div>
-    <Hello v-if="selfPeer.streams" :stream="selfPeer.streams[0]" />
+    <Hello v-if="selfPeer.streams" :muted="true" :stream="selfPeer.streams[0]" />
     <Hello v-for="(peer, index) in peers" :stream="peer.streams[0]" v-bind:key="index" />
   </div>
 </template>
@@ -43,7 +43,12 @@ export default Vue.extend({
     this.vditor = new Vditor("vditor", vditorConfig);
 
     // init websocket
-    const ws = new WebSocket((window.location.protocol == 'http:'?'ws':'wss')+"://" +window.location.host+"/ws/1");
+    const ws = new WebSocket(
+      (window.location.protocol == "http:" ? "ws" : "wss") +
+        "://" +
+        window.location.host +
+        "/ws/1"
+    );
     console.log(ws, navigator.mediaDevices.getUserMedia);
     ws.onopen = async (e: any) => {
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -60,6 +65,7 @@ export default Vue.extend({
       });
       console.log("selfPeer", this.selfPeer);
       this.selfPeer.on("signal", (data: any) => {
+        console.log("selfPeerOnSignal", data);
         ws.send(JSON.stringify({ type: 0, data: JSON.stringify(data) }));
       });
       this.selfPeer.on("connect", (data: any) => {
@@ -67,6 +73,14 @@ export default Vue.extend({
       });
       this.selfPeer.on("stream", (data: any) => {
         console.log("onStream", data);
+        const peer = new Peer({
+          initiator: true,
+          stream: data
+        });
+        peer.on("close", (data: any) => {
+          console.log("onClose", data);
+        });
+        this.peers.push(peer);
       });
     };
     ws.onmessage = (e: any) => {
@@ -75,7 +89,7 @@ export default Vue.extend({
       switch (data.type) {
         case 0:
           signal = JSON.parse(data.data);
-          console.log("remote signal", signal);
+          console.log("onSignal", signal);
           this.selfPeer.signal(signal);
           break;
 

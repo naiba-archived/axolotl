@@ -1,6 +1,6 @@
 <template>
   <div v-drag>
-    <video ref="cam" muted autoplay></video>
+    <video ref="cam" :muted="muted" autoplay></video>
     <p>X</p>
   </div>
 </template>
@@ -11,7 +11,8 @@ import Vue from "vue";
 export default Vue.extend({
   name: "Hello",
   props: {
-    stream: MediaStream
+    stream: MediaStream,
+    muted: Boolean
   },
   mounted() {
     (this.$refs.cam as any).srcObject = this.stream;

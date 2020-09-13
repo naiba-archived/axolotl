@@ -4,6 +4,7 @@ go 1.15
 
 require (
 	github.com/allegro/bigcache v1.2.1
+	github.com/gofiber/adaptor v0.2.0
 	github.com/gofiber/fiber v1.14.5
 	github.com/gofiber/websocket v0.5.1
 	github.com/golang/protobuf v1.3.2 // indirect
