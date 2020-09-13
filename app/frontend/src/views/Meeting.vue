@@ -43,7 +43,7 @@ export default Vue.extend({
     this.vditor = new Vditor("vditor", vditorConfig);
 
     // init websocket
-    const ws = new WebSocket("wss://ed130909ea27.ngrok.io/ws/1");
+    const ws = new WebSocket((window.location.protocol == 'http:'?'ws':'wss')+"://" +window.location.host+"/ws/1");
     console.log(ws, navigator.mediaDevices.getUserMedia);
     ws.onopen = async (e: any) => {
       const stream = await navigator.mediaDevices.getUserMedia({
