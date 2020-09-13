@@ -23,7 +23,7 @@ export default Vue.extend({
   data() {
     return {
       vditor: {} as any,
-      peers: [],
+      peers: [] as any,
       selfPeer: {} as any
     };
   },
