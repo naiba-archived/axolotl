@@ -6,7 +6,8 @@ RUN cd cmd/api \
 FROM alpine:latest
 RUN apk --no-cache --no-progress add \
     ca-certificates \
-    tzdata
+    tzdata \
+    gcc
 WORKDIR /helloengineer
 COPY dist /helloengineer/dist
 COPY --from=binarybuilder /helloengineer/cmd/api/api ./api
