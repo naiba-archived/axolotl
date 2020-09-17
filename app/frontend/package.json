@@ -13,14 +13,17 @@
     "@fortawesome/free-solid-svg-icons": "^5.14.0",
     "@fortawesome/vue-fontawesome": "^2.0.0",
     "axios": "^0.20.0",
+    "codemirror": "^5.57.0",
     "core-js": "^3.6.5",
     "halfmoon": "^1.0.4",
     "simple-peer": "^9.7.2",
-    "vditor": "^3.5.2",
     "vue": "^2.6.11",
     "vue-router": "^3.2.0",
     "vuex": "^3.4.0",
-    "vuex-persistedstate": "^3.1.0"
+    "vuex-persistedstate": "^3.1.0",
+    "y-codemirror": "^2.0.9",
+    "y-webrtc": "^10.1.6",
+    "yjs": "^13.3.2"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^2.33.0",

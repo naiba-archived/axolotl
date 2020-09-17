@@ -24,11 +24,12 @@ div {
   position: absolute;
   top: 8rem;
   left: 8rem;
+  z-index: 9999;
+
   > video {
     background-color: whitesmoke;
     width: 320px;
     height: 180px;
-    z-index: 9999;
     border-radius: 1rem;
     cursor: move;
   }

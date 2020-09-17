@@ -1,6 +1,6 @@
 <template>
-  <div>
-    <div id="vditor"></div>
+  <div style="height:100%">
+    <div id="editor"></div>
     <Hello v-if="selfPeer.streams" :muted="true" :stream="selfPeer.streams[0]" />
     <Hello v-for="(peer, index) in peers" :stream="peer.streams[0]" v-bind:key="index" />
   </div>
@@ -8,12 +8,16 @@
 
 <script lang="ts">
 import Vue from "vue";
-import Vditor from "vditor";
-import "../../node_modules/vditor/src/assets/scss/index.scss";
 import { mapState } from "vuex";
-import vditorConfig from "../utils/vditor";
 import Hello from "@/components/Hello.vue";
 import Peer from "simple-peer";
+import * as Y from "yjs";
+import { WebrtcProvider } from "y-webrtc";
+import CodeMirror from "codemirror";
+import { CodemirrorBinding } from "y-codemirror";
+import "codemirror/theme/dracula.css";
+import "codemirror/theme/solarized.css";
+import "codemirror/lib/codemirror.css";
 
 export default Vue.extend({
   name: "Meeting",
@@ -22,7 +26,7 @@ export default Vue.extend({
   },
   data() {
     return {
-      vditor: {} as any,
+      editor: {} as any,
       peers: [] as any,
       selfPeer: {} as any
     };
@@ -34,13 +38,32 @@ export default Vue.extend({
   },
   watch: {
     darkMode() {
-      this.vditor.setTheme(this.darkMode ? "dark" : "classic");
+      this.editor.setOption(
+        "theme",
+        this.darkMode ? "dracula" : "solarized-light"
+      );
     }
   },
   mounted() {
-    // init vditor
-    vditorConfig.theme = this.darkMode ? "dark" : "classic";
-    this.vditor = new Vditor("vditor", vditorConfig);
+    const ydocument = new Y.Doc();
+    const provider = new WebrtcProvider(
+      this.$router.currentRoute.params.id,
+      ydocument,
+      {
+        password: "optional-room-password"
+      } as any
+    );
+    const type = ydocument.getText("codemirror");
+    this.editor = CodeMirror(document.getElementById("editor"), {
+      lineNumbers: true,
+      theme: this.darkMode ? "dracula" : "solarized-light"
+    });
+
+    const monacoBinding = new CodemirrorBinding(
+      type,
+      this.editor,
+      provider.awareness
+    );
 
     // init websocket
     const ws = new WebSocket(
@@ -65,7 +88,6 @@ export default Vue.extend({
       });
       console.log("selfPeer", this.selfPeer);
       this.selfPeer.on("signal", (data: any) => {
-        console.log("selfPeerOnSignal", data);
         ws.send(JSON.stringify({ type: 0, data: JSON.stringify(data) }));
       });
       this.selfPeer.on("connect", (data: any) => {
@@ -110,7 +132,11 @@ export default Vue.extend({
 });
 </script>
 <style lang="scss">
-#vditor .vditor-reset {
-  color: unset;
+#editor {
+  font-size: 18px;
+  height: 100%;
+  > .CodeMirror {
+    height: 100%;
+  }
 }
 </style>
