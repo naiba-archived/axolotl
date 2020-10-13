@@ -1,8 +1,23 @@
 <template>
-  <div style="height:100%">
-    <div id="editor"></div>
-    <Hello v-if="selfPeer.streams" :muted="true" :stream="selfPeer.streams[0]" />
-    <Hello v-for="(peer, index) in peers" :stream="peer.streams[0]" v-bind:key="index" />
+  <div class="container">
+    <div class="row">
+      <div class="col-6">
+        <div id="editor"></div>
+      </div>
+      <div class="col-6">
+        <textarea class="form-control" disabled readonly></textarea>
+      </div>
+    </div>
+    <Hello
+      v-if="selfPeer.streams"
+      :muted="true"
+      :stream="selfPeer.streams[0]"
+    />
+    <Hello
+      v-for="(peer, index) in peers"
+      :stream="peer.streams[0]"
+      v-bind:key="index"
+    />
   </div>
 </template>
 
@@ -13,11 +28,8 @@ import Hello from "@/components/Hello.vue";
 import Peer from "simple-peer";
 import * as Y from "yjs";
 import { WebrtcProvider } from "y-webrtc";
-import CodeMirror from "codemirror";
-import { CodemirrorBinding } from "y-codemirror";
-import "codemirror/theme/dracula.css";
-import "codemirror/theme/solarized.css";
-import "codemirror/lib/codemirror.css";
+import * as monaco from "monaco-editor";
+import { MonacoBinding } from "y-monaco";
 
 export default Vue.extend({
   name: "Meeting",
@@ -38,10 +50,7 @@ export default Vue.extend({
   },
   watch: {
     darkMode() {
-      this.editor.setOption(
-        "theme",
-        this.darkMode ? "dracula" : "solarized-light"
-      );
+      monaco.editor.setTheme(this.darkMode ? "vs-dark" : "vs");
     }
   },
   mounted() {
@@ -53,15 +62,20 @@ export default Vue.extend({
         password: "optional-room-password"
       } as any
     );
-    const type = ydocument.getText("codemirror");
-    this.editor = CodeMirror(document.getElementById("editor"), {
-      lineNumbers: true,
-      theme: this.darkMode ? "dracula" : "solarized-light"
-    });
-
-    const monacoBinding = new CodemirrorBinding(
+    const type = ydocument.getText("monaco");
+    this.editor = monaco.editor.create(
+      document.getElementById("editor") || new HTMLElement(),
+      {
+        value: "",
+        fontSize: 18,
+        theme: this.darkMode ? "vs-dark" : "vs",
+        language: "php"
+      }
+    );
+    const monacoBinding = new MonacoBinding(
       type,
-      this.editor,
+      this.editor.getModel(),
+      new Set([this.editor]),
       provider.awareness
     );
 
@@ -99,8 +113,11 @@ export default Vue.extend({
           initiator: true,
           stream: data
         });
-        peer.on("close", (data: any) => {
-          console.log("onClose", data);
+        peer.on("close", () => {
+          console.log("onClose", peer);
+        });
+        peer.on("error", (err: any) => {
+          console.log("error", peer, err);
         });
         this.peers.push(peer);
       });
@@ -131,12 +148,13 @@ export default Vue.extend({
   }
 });
 </script>
-<style lang="scss">
+<style lang="scss" scoped>
 #editor {
-  font-size: 18px;
+  height: calc(90vh);
+}
+textarea {
   height: 100%;
-  > .CodeMirror {
-    height: 100%;
-  }
+  resize: none;
+  overflow-y: scroll;
 }
 </style>
