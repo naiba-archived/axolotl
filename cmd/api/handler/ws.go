@@ -3,7 +3,7 @@ package handler
 import (
 	"encoding/json"
 
-	"github.com/gofiber/websocket"
+	"github.com/gofiber/websocket/v2"
 
 	"github.com/naiba/helloengineer/pkg/hub"
 	"github.com/naiba/helloengineer/pkg/util"

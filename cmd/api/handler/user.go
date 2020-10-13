@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/allegro/bigcache"
-	"github.com/gofiber/fiber"
+	"github.com/gofiber/fiber/v2"
 	githubapi "github.com/google/go-github/github"
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/oauth2"
@@ -17,42 +17,40 @@ import (
 	"github.com/naiba/helloengineer/pkg/util"
 )
 
-func User(c *fiber.Ctx) {
-	c.JSON(model.Response{
+func User(c *fiber.Ctx) error {
+	return c.JSON(model.Response{
 		Data: c.Locals(model.KeyAuthorizedUser),
 	})
 }
 
 func Logout(db *gorm.DB) fiber.Handler {
-	return func(c *fiber.Ctx) {
+	return func(c *fiber.Ctx) error {
 		user := c.Locals(model.KeyAuthorizedUser).(model.User)
 		user.Sid = ""
 		if err := db.Save(&user).Error; err != nil {
-			c.Next(err)
-			return
+			return err
 		}
+		return nil
 	}
 }
 
 func Oauth2Login(config *oauth2.Config, cache *bigcache.BigCache) fiber.Handler {
-	return func(c *fiber.Ctx) {
+	return func(c *fiber.Ctx) error {
 		state := util.RandStringBytesMaskImprSrcUnsafe(8)
 		cache.Set(fmt.Sprintf("%s%s", model.KeyOauth2State, state), nil)
-		c.Redirect(config.AuthCodeURL(state, oauth2.AccessTypeOnline), http.StatusTemporaryRedirect)
+		return c.Redirect(config.AuthCodeURL(state, oauth2.AccessTypeOnline), http.StatusTemporaryRedirect)
 	}
 }
 
 func Oauth2Callback(config *oauth2.Config, cache *bigcache.BigCache, db *gorm.DB) fiber.Handler {
-	return func(c *fiber.Ctx) {
+	return func(c *fiber.Ctx) error {
 		_, err := cache.Get(fmt.Sprintf("%s%s", model.KeyOauth2State, c.Query("state")))
 		if err != nil {
-			c.Next(err)
-			return
+			return err
 		}
 		token, err := config.Exchange(c.Context(), c.Query("code"))
 		if err != nil {
-			c.Next(err)
-			return
+			return err
 		}
 		ts := oauth2.StaticTokenSource(
 			&oauth2.Token{AccessToken: token.AccessToken},
@@ -61,14 +59,12 @@ func Oauth2Callback(config *oauth2.Config, cache *bigcache.BigCache, db *gorm.DB
 		client := githubapi.NewClient(tc)
 		data, _, err := client.Users.Get(c.Context(), "")
 		if err != nil {
-			c.Next(err)
-			return
+			return err
 		}
 		var user model.User
 		if err := db.First(&user, "github_id = ?", data.GetID()).Error; err != nil {
 			if !errors.Is(err, gorm.ErrRecordNotFound) {
-				c.Next(err)
-				return
+				return err
 			}
 			user.GithubID = data.GetID()
 			user.Nickname = data.GetLogin()
@@ -76,20 +72,18 @@ func Oauth2Callback(config *oauth2.Config, cache *bigcache.BigCache, db *gorm.DB
 
 		hash, err := bcrypt.GenerateFromPassword([]byte(fmt.Sprintf("%d%s%s%d", time.Now().UnixNano(), user.Nickname, c.IP(), user.ID)), bcrypt.MinCost)
 		if err != nil {
-			c.Next(err)
-			return
+			return err
 		}
 		user.Sid = string(hash)
 
 		if err := db.Save(&user).Error; err != nil {
-			c.Next(err)
-			return
+			return err
 		}
 		c.Cookie(&fiber.Cookie{
 			Name:  "sid",
 			Value: user.Sid,
 		})
 
-		c.Redirect("/", http.StatusTemporaryRedirect)
+		return c.Redirect("/", http.StatusTemporaryRedirect)
 	}
 }

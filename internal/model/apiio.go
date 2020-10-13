@@ -5,3 +5,7 @@ type Response struct {
 	Msg  string      `json:"msg,omitempty"`
 	Data interface{} `json:"data,omitempty"`
 }
+type RunCodeRequest struct {
+	Container string `json:"container,omitempty"`
+	Code      string `json:"code,omitempty"`
+}

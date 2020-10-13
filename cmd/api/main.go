@@ -9,10 +9,11 @@ import (
 	"time"
 
 	"github.com/allegro/bigcache"
-	"github.com/gofiber/adaptor"
-	"github.com/gofiber/fiber"
-	"github.com/gofiber/fiber/middleware"
-	"github.com/gofiber/websocket"
+	"github.com/gofiber/adaptor/v2"
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/logger"
+	"github.com/gofiber/fiber/v2/middleware/recover"
+	"github.com/gofiber/websocket/v2"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/github"
 	"gopkg.in/yaml.v3"
@@ -69,14 +70,22 @@ func main() {
 		ClientSecret: config.GitHub.ClientSecret,
 		Endpoint:     github.Endpoint,
 	}
-	app := fiber.New()
-	app.Use(middleware.Recover())
-	app.Use(middleware.Logger())
-	app.Settings.ErrorHandler = handler.DefaultError
+	app := fiber.New(fiber.Config{
+		ErrorHandler: handler.DefaultError,
+	})
+	app.Use(recover.New())
+	app.Use(logger.New())
 
 	api := app.Group("/api")
 	{
 		api.Use(handler.AuthMiddleware(db))
+
+		runner := api.Group("/code")
+		{
+			// runner.Use(handler.LoginRequired(true))
+			runner.Get("/list", handler.ListRunner(config))
+			runner.Post("/run", handler.RunCode(config))
+		}
 
 		user := api.Group("/user")
 		{
@@ -94,7 +103,7 @@ func main() {
 
 	ws := app.Group("/ws")
 	{
-		// ws.Use(authMiddleware, requireLogin)
+		// ws.Use(handler.AuthMiddleware(db), handler.LoginRequired(true))
 		ws.Get("/:meetingID", websocket.New(handler.WS()))
 	}
 

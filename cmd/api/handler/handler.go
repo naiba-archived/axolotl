@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/gofiber/fiber"
+	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 
 	"github.com/naiba/helloengineer/internal/bizerr"
@@ -13,43 +13,38 @@ import (
 )
 
 func AuthMiddleware(db *gorm.DB) fiber.Handler {
-	return func(c *fiber.Ctx) {
+	return func(c *fiber.Ctx) error {
 		sid := c.Cookies("sid")
 		if sid == "" || strings.TrimSpace(sid) == "" {
-			c.Next()
-			return
+			return c.Next()
 		}
 		var user model.User
 		if err := db.First(&user, "sid = ?", sid).Error; err != nil {
-			c.Next()
-			return
+			return c.Next()
 		}
 		c.Locals(model.KeyAuthorizedUser, user)
-		c.Next()
+		return c.Next()
 	}
 }
 
 func LoginRequired(responseJSON bool) fiber.Handler {
-	return func(c *fiber.Ctx) {
+	return func(c *fiber.Ctx) error {
 		if c.Locals(model.KeyAuthorizedUser) == nil {
 			if responseJSON {
-				c.Next(bizerr.UnAuthorizedError)
-			} else {
-				c.Redirect("/", http.StatusTemporaryRedirect)
+				return bizerr.UnAuthorizedError
 			}
-			return
+			return c.Redirect("/", http.StatusTemporaryRedirect)
 		}
-		c.Next()
+		return c.Next()
 	}
 }
 
-func DefaultError(c *fiber.Ctx, err error) {
+func DefaultError(c *fiber.Ctx, err error) error {
 	if err, ok := err.(bizerr.BizError); ok {
-		c.JSON(model.Response{
+		return c.JSON(model.Response{
 			Code: err.Code,
 			Msg:  err.Error(),
 		})
-		return
 	}
 	if util.IsErrors(err, []error{
 		gorm.ErrInvalidData, gorm.ErrInvalidField, gorm.ErrInvalidTransaction,
@@ -57,17 +52,15 @@ func DefaultError(c *fiber.Ctx, err error) {
 		gorm.ErrNotImplemented, gorm.ErrPrimaryKeyRequired, gorm.ErrRecordNotFound,
 		gorm.ErrRegistered, gorm.ErrUnsupportedDriver, gorm.ErrUnsupportedRelation}) {
 		util.Errorf(1, "gorm: %+v", err)
-		c.JSON(model.Response{
+		return c.JSON(model.Response{
 			Code: bizerr.DatabaseError.Code,
 			Msg:  bizerr.DatabaseError.Msg,
 		})
-		return
 	}
-	c.JSON(model.Response{
+	return c.JSON(model.Response{
 		Code: bizerr.UnknownError.Code,
 		Msg:  err.Error(),
 	})
-	return
 }
 
 func NotFund(c *fiber.Ctx) {

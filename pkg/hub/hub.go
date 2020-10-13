@@ -3,7 +3,7 @@ package hub
 import (
 	"sync"
 
-	"github.com/gofiber/websocket"
+	"github.com/gofiber/websocket/v2"
 )
 
 type Message struct {
@@ -73,7 +73,7 @@ func (h *Hub) Serve() {
 					if c == m.From {
 						continue
 					}
-					if err := c.WriteMessage(websocket.TextMessage, m.Data); err != nil {
+					if c.WriteMessage(websocket.TextMessage, m.Data) == nil {
 						continue
 					}
 				}
