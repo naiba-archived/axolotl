@@ -15,5 +15,5 @@ COPY dist /helloengineer/dist
 COPY --from=binarybuilder /helloengineer/cmd/api/api ./api
 
 VOLUME ["/helloengineer/data"]
-EXPOSE 8080
+EXPOSE 80
 CMD ["/helloengineer/api"]

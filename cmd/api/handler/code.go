@@ -9,9 +9,10 @@ import (
 	"github.com/gofiber/fiber/v2"
 
 	"github.com/naiba/helloengineer/internal/model"
+	"github.com/naiba/helloengineer/pkg/hub"
 )
 
-func RunCode(conf *model.Config) fiber.Handler {
+func RunCode(conf *model.Config, h *hub.Hub) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		var req model.RunCodeRequest
 		if err := c.BodyParser(&req); err != nil {
@@ -38,8 +39,19 @@ func RunCode(conf *model.Config) fiber.Handler {
 		if err != nil {
 			return err
 		}
-		_, err = c.Write(body)
-		return err
+		data, err := json.Marshal(model.WsMsg{
+			Type: model.MsgTypeExecResult,
+			Data: string(body),
+		})
+		if err != nil {
+			return err
+		}
+		h.Broadcast <- hub.Message{
+			Topic: req.Room,
+			Data:  data,
+			From:  nil,
+		}
+		return nil
 	}
 }
 
@@ -61,7 +73,8 @@ func ListRunner(conf *model.Config) fiber.Handler {
 		if err != nil {
 			return err
 		}
-		_, err = c.Write(body)
-		return err
+		return c.JSON(model.Response{
+			Data: string(body),
+		})
 	}
 }

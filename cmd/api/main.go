@@ -22,6 +22,7 @@ import (
 
 	"github.com/naiba/helloengineer/cmd/api/handler"
 	"github.com/naiba/helloengineer/internal/model"
+	"github.com/naiba/helloengineer/pkg/hub"
 	"github.com/naiba/helloengineer/pkg/util"
 )
 
@@ -35,6 +36,7 @@ var (
 	cache        *bigcache.BigCache
 	db           *gorm.DB
 	frontendHost *url.URL
+	pubsub       *hub.Hub
 )
 
 func init() {
@@ -61,6 +63,8 @@ func init() {
 	}
 	db = db.Debug()
 	db.AutoMigrate(model.User{})
+	pubsub = hub.New()
+	go pubsub.Serve()
 	util.Infof(0, "Up with config: %+v cache-cap:%d\n", config, cache.Capacity())
 }
 
@@ -84,7 +88,7 @@ func main() {
 		{
 			// runner.Use(handler.LoginRequired(true))
 			runner.Get("/list", handler.ListRunner(config))
-			runner.Post("/run", handler.RunCode(config))
+			runner.Post("/run", handler.RunCode(config, pubsub))
 		}
 
 		user := api.Group("/user")
@@ -104,7 +108,7 @@ func main() {
 	ws := app.Group("/ws")
 	{
 		// ws.Use(handler.AuthMiddleware(db), handler.LoginRequired(true))
-		ws.Get("/:meetingID", websocket.New(handler.WS()))
+		ws.Get("/:meetingID", websocket.New(handler.WS(pubsub)))
 	}
 
 	if os.Getenv(PROXY_ENABLE) == "" {

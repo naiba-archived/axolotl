@@ -1,6 +1,6 @@
 import axios from "axios";
 
-axios.interceptors.request.use(function(config) {
+axios.interceptors.request.use(function (config) {
   return {
     ...config,
     params: {
@@ -9,7 +9,7 @@ axios.interceptors.request.use(function(config) {
   };
 });
 
-axios.interceptors.response.use(function(response) {
+axios.interceptors.response.use(function (response) {
   if (response.status !== 200) {
     throw new Error(response.statusText);
   }

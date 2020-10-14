@@ -5,27 +5,12 @@ import (
 
 	"github.com/gofiber/websocket/v2"
 
+	"github.com/naiba/helloengineer/internal/model"
 	"github.com/naiba/helloengineer/pkg/hub"
 	"github.com/naiba/helloengineer/pkg/util"
 )
 
-var pubsub *hub.Hub
-
-func init() {
-	pubsub = hub.New()
-	go pubsub.Serve()
-}
-
-const (
-	MsgTypePeer = 0
-)
-
-type Msg struct {
-	Type uint   `json:"type"`
-	Data string `json:"data"`
-}
-
-func WS() func(c *websocket.Conn) {
+func WS(pubsub *hub.Hub) func(c *websocket.Conn) {
 	return func(c *websocket.Conn) {
 		c.SetPingHandler(c.PingHandler())
 		c.SetPongHandler(c.PongHandler())
@@ -34,7 +19,7 @@ func WS() func(c *websocket.Conn) {
 			Conn:  c,
 			Topic: roomID,
 		}
-		var m Msg
+		var m model.WsMsg
 		var err error
 		for {
 			err = c.ReadJSON(&m)
@@ -46,18 +31,15 @@ func WS() func(c *websocket.Conn) {
 				break
 			}
 			if err == nil {
-				switch m.Type {
-				case MsgTypePeer:
-					data, err := json.Marshal(m)
-					if err != nil {
-						util.Errorf(0, "%+v", err)
-						continue
-					}
-					pubsub.Broadcast <- hub.Message{
-						Topic: roomID,
-						Data:  data,
-						From:  c,
-					}
+				data, err := json.Marshal(m)
+				if err != nil {
+					util.Errorf(0, "%+v", err)
+					continue
+				}
+				pubsub.Broadcast <- hub.Message{
+					Topic: roomID,
+					Data:  data,
+					From:  c,
 				}
 			}
 		}
