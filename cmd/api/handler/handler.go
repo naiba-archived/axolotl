@@ -63,6 +63,6 @@ func DefaultError(c *fiber.Ctx, err error) error {
 	})
 }
 
-func NotFund(c *fiber.Ctx) {
-	c.SendFile("dist/index.html")
+func NotFund(c *fiber.Ctx) error {
+	return c.SendFile("dist/index.html")
 }
