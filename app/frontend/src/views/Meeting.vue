@@ -123,8 +123,8 @@ export default Vue.extend({
     }
   },
   beforeDestroy() {
-    this.selfPeer.streams.forEach(stream => {
-      stream.getTracks().forEach(track => track.stop());
+    this.selfPeer.streams.forEach((stream: any) => {
+      stream.getTracks().forEach((track: any) => track.stop());
     });
     this.selfPeer.destroy();
   },
@@ -132,7 +132,7 @@ export default Vue.extend({
     halfmoon.onDOMContentLoaded();
     this.conferenceLink = window.location.href;
     const clip = new Clipboard("button.clipboard");
-    clip.on("success", function(e) {
+    clip.on("success", function(e: any) {
       halfmoon.initStickyAlert({
         content:
           "The conference link has been copied, please send it to the participants.",

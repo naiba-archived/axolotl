@@ -2,6 +2,4 @@
 
 :wave: Hello Engineer is an easy-to-use, lightweight, small online meeting room for interviewing or discussing programming.
 
-### thanks :+1:
-
-- frontend ui framework: halfmoon
+status: **mvp-dev**, this project is still in the minimum usable development stage.

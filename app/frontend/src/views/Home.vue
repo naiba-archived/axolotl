@@ -27,7 +27,7 @@ export default Vue.extend({
     ...mapState({ user: "user" })
   },
   methods: {
-    makeid(length) {
+    makeid(length: number) {
       var result = "";
       var characters =
         "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
