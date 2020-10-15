@@ -86,7 +86,7 @@ func main() {
 
 		runner := api.Group("/code")
 		{
-			// runner.Use(handler.LoginRequired(true))
+			runner.Use(handler.LoginRequired(true))
 			runner.Get("/list", handler.ListRunner(config))
 			runner.Post("/run", handler.RunCode(config, pubsub))
 		}
@@ -107,7 +107,7 @@ func main() {
 
 	ws := app.Group("/ws")
 	{
-		// ws.Use(handler.AuthMiddleware(db), handler.LoginRequired(true))
+		ws.Use(handler.AuthMiddleware(db), handler.LoginRequired(true))
 		ws.Get("/:meetingID", websocket.New(handler.WS(pubsub)))
 	}
 

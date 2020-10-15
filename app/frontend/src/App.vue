@@ -19,6 +19,11 @@ export default Vue.extend({
   async mounted() {
     halfmoon.onDOMContentLoaded();
     await this.$store.dispatch("fetchUser");
+    const returnURL = localStorage.getItem("returnURL");
+    if (this.user.id && returnURL) {
+      localStorage.removeItem("returnURL");
+      window.location.href = returnURL;
+    }
   }
 });
 </script>

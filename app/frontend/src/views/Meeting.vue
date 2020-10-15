@@ -1,41 +1,51 @@
 <template>
-  <div class="container">
-    <div class="row">
-      <div class="col-12">
-        <div class="code-runner row justify-content-between">
-          <div class="col-4">
-            <select v-model="lang" @change="chooseLang" class="form-control">
-              <option value="" selected="selected" disabled="disabled">
-                Select Programming Language
-              </option>
-              <option v-for="(k, v) in langs" :key="v" :value="v">
-                {{ v }}
-              </option>
-            </select>
-          </div>
-          <div class="col-4">
-            <button @click="execute" class="btn" type="button">Execute</button>
+  <div class="page-wrapper">
+    <div class="container">
+      <div class="row">
+        <div class="col-12">
+          <div class="code-runner row justify-content-between">
+            <div class="col-4">
+              <select v-model="lang" @change="chooseLang" class="form-control">
+                <option value="" selected="selected" disabled="disabled">
+                  Select Programming Language
+                </option>
+                <option v-for="(k, v) in langs" :key="v" :value="v">
+                  {{ v }}
+                </option>
+              </select>
+            </div>
+            <div class="col-4">
+              <button
+                class="btn clipboard"
+                :data-clipboard-text="conferenceLink"
+              >
+                Share Conference Link
+              </button>
+              &nbsp;
+              <button @click="execute" class="btn">Execute</button>
+            </div>
           </div>
         </div>
+        <div class="col-6">
+          <div id="editor"></div>
+        </div>
+        <div class="col-6">
+          <textarea v-model="log" class="form-control" disabled readonly>
+          </textarea>
+        </div>
       </div>
-      <div class="col-6">
-        <div id="editor"></div>
-      </div>
-      <div class="col-6">
-        <textarea v-model="log" class="form-control" disabled readonly>
-        </textarea>
-      </div>
+      <Hello
+        v-if="selfPeer.streams"
+        :muted="true"
+        :stream="selfPeer.streams[0]"
+      />
+      <Hello
+        v-for="(stream, index) in streams"
+        :stream="stream"
+        v-bind:key="index"
+      />
     </div>
-    <Hello
-      v-if="selfPeer.streams"
-      :muted="true"
-      :stream="selfPeer.streams[0]"
-    />
-    <Hello
-      v-for="(peer, index) in peers"
-      :stream="peer.streams[0]"
-      v-bind:key="index"
-    />
+    <div class="sticky-alerts"></div>
   </div>
 </template>
 
@@ -49,6 +59,8 @@ import * as Y from "yjs";
 import { WebrtcProvider } from "y-webrtc";
 import { MonacoBinding } from "y-monaco";
 import { executeCode, fetchCodeList } from "../api/code";
+import Clipboard from "clipboard";
+import halfmoon from "halfmoon";
 
 export default Vue.extend({
   name: "Meeting",
@@ -60,10 +72,11 @@ export default Vue.extend({
       executing: false,
       ws: {} as any,
       lang: "",
+      conferenceLink: "",
       log: "Waiting for execution",
       langs: {} as any,
       editor: {} as any,
-      peers: [] as any,
+      streams: [] as any,
       selfPeer: {} as any
     };
   },
@@ -109,9 +122,27 @@ export default Vue.extend({
       }
     }
   },
+  beforeDestroy() {
+    this.selfPeer.streams.forEach(stream => {
+      stream.getTracks().forEach(track => track.stop());
+    });
+    this.selfPeer.destroy();
+  },
   async mounted() {
-    this.langs = await fetchCodeList();
+    halfmoon.onDOMContentLoaded();
+    this.conferenceLink = window.location.href;
+    const clip = new Clipboard("button.clipboard");
+    clip.on("success", function(e) {
+      halfmoon.initStickyAlert({
+        content:
+          "The conference link has been copied, please send it to the participants.",
+        title: "Successful copied",
+        alertType: "alert-success"
+      });
+      e.clearSelection();
+    });
 
+    this.langs = await fetchCodeList();
     this.editor = monaco.editor.create(
       document.getElementById("editor") || new HTMLElement(),
       {
@@ -126,7 +157,7 @@ export default Vue.extend({
       this.$router.currentRoute.params.id,
       ydocument,
       {
-        password: "optional-room-password"
+        password: window.location.host
       } as any
     );
     const type = ydocument.getText("monaco");
@@ -146,7 +177,6 @@ export default Vue.extend({
         this.$router.currentRoute.params.id
     );
     this.ws.onopen = async (e: any) => {
-      return;
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {
           width: 160,
@@ -154,31 +184,25 @@ export default Vue.extend({
         },
         audio: true
       });
-      console.log("stream", stream);
       this.selfPeer = new Peer({
         initiator: true,
         stream: stream
       });
-      console.log("selfPeer", this.selfPeer);
       this.selfPeer.on("signal", (data: any) => {
         this.ws.send(JSON.stringify({ type: 0, data: JSON.stringify(data) }));
       });
       this.selfPeer.on("connect", (data: any) => {
         console.log("onConnect", data);
       });
-      this.selfPeer.on("stream", (data: any) => {
-        console.log("onStream", data);
-        const peer = new Peer({
-          initiator: true,
-          stream: data
-        });
-        peer.on("close", () => {
-          console.log("onClose", peer);
-        });
-        peer.on("error", (err: any) => {
-          console.log("error", peer, err);
-        });
-        this.peers.push(peer);
+      this.selfPeer.on("stream", (stream: any) => {
+        stream.oninactive = () => {
+          for (let i = 0; i < this.streams.length; i++) {
+            if (this.streams[i].id == stream.id) {
+              delete this.streams[i];
+            }
+          }
+        };
+        this.streams.push(stream);
       });
     };
     this.ws.onclose = (e: any) => {
@@ -191,7 +215,6 @@ export default Vue.extend({
       switch (data.type) {
         case 0:
           signal = JSON.parse(data.data);
-          console.log("onSignal", signal);
           this.selfPeer.signal(signal);
           break;
 

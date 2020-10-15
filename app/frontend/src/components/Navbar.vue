@@ -16,11 +16,7 @@
         </li>
       </ul>
       <div class="d-none d-flex ml-auto">
-        <button
-          class="btn btn-action mr-5"
-          type="button"
-          @click="toggleDarkMode"
-        >
+        <button class="btn btn-action mr-5" @click="toggleDarkMode">
           <font-awesome-icon v-if="!darkMode" :icon="['fa', 'moon']" />
           <font-awesome-icon v-if="darkMode" :icon="['fa', 'sun']" />
         </button>
@@ -36,7 +32,6 @@
           <button
             class="btn logged-in-btn"
             data-toggle="dropdown"
-            type="button"
             id="nav-logged-in"
             aria-haspopup="true"
             aria-expanded="false"

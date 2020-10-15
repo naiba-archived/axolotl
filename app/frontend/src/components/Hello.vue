@@ -1,7 +1,6 @@
 <template>
   <div v-drag>
     <video ref="cam" :muted="muted" autoplay></video>
-    <p>X</p>
   </div>
 </template>
 
@@ -32,14 +31,6 @@ div {
     height: 180px;
     border-radius: 1rem;
     cursor: move;
-  }
-  > p {
-    color: red;
-    font-size: 30px;
-    font-weight: bolder;
-    position: absolute;
-    bottom: -2.5rem;
-    left: 1rem;
   }
 }
 </style>

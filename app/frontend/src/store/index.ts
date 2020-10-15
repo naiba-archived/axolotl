@@ -32,10 +32,11 @@ export default new Vuex.Store({
         const user = await fetchUser();
         commit("update", { user });
       } catch (error) {
-        console.log("fetchUser", error);
-        //FIXME authorized
-        // commit('update', { user: {} })
-        // if (router.currentRoute.path != "/") router.push("/");
+        commit('update', { user: {} })
+        if (window.location.pathname != "/") {
+          localStorage.setItem("returnURL", window.location.href)
+          router.push("/");
+        }
       }
     },
     async logout({ commit }) {
