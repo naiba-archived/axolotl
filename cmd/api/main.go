@@ -26,17 +26,14 @@ import (
 	"github.com/naiba/helloengineer/pkg/util"
 )
 
-const (
-	PROXY_ENABLE = "PROXY_ENABLE"
-)
-
 var (
-	oauth2config *oauth2.Config
-	config       *model.Config
-	cache        *bigcache.BigCache
-	db           *gorm.DB
-	frontendHost *url.URL
-	pubsub       *hub.Hub
+	frontendDevProxyEnv = os.Getenv("FRONTEND_DEV_PROXY")
+	oauth2config        *oauth2.Config
+	config              *model.Config
+	cache               *bigcache.BigCache
+	db                  *gorm.DB
+	frontendHost        *url.URL
+	pubsub              *hub.Hub
 )
 
 func init() {
@@ -44,7 +41,7 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-	frontendHost, err = url.Parse("http://localhost:8080")
+	frontendHost, err = url.Parse(frontendDevProxyEnv)
 	if err != nil {
 		panic(err)
 	}
@@ -65,7 +62,7 @@ func init() {
 	db.AutoMigrate(model.User{})
 	pubsub = hub.New()
 	go pubsub.Serve()
-	util.Infof(0, "Up with config: %+v cache-cap:%d\n", config, cache.Capacity())
+	util.Infof(0, "Up with proxy:%s config: %+v cache-cap:%d\n", frontendDevProxyEnv, config, cache.Capacity())
 }
 
 func main() {
@@ -83,6 +80,8 @@ func main() {
 	api := app.Group("/api")
 	{
 		api.Use(handler.AuthMiddleware(db))
+
+		api.Get("/config", handler.Config(config))
 
 		runner := api.Group("/code")
 		{
@@ -111,14 +110,17 @@ func main() {
 		ws.Get("/:meetingID", websocket.New(handler.WS(pubsub)))
 	}
 
-	if os.Getenv(PROXY_ENABLE) == "" {
+	if frontendDevProxyEnv == "" {
 		app.Static("/", "dist")
 		app.Use(handler.NotFund)
 	} else {
+		proxy := httputil.NewSingleHostReverseProxy(frontendHost)
+		// proxy.Transport = xhttputil.NewTransport(func(body string) string {
+		// 	return strings.ReplaceAll(body, `/js/`, frontendHost.String()+"js/")
+		// })
 		app.Use(adaptor.HTTPHandlerFunc(func(req http.ResponseWriter, resp *http.Request) {
-			httputil.NewSingleHostReverseProxy(frontendHost).ServeHTTP(req, resp)
+			proxy.ServeHTTP(req, resp)
 		}))
-
 	}
 
 	app.Listen(":80")
