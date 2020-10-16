@@ -142,7 +142,6 @@ export default Vue.extend({
       e.clearSelection();
     });
 
-    this.langs = await fetchCodeList();
     this.editor = monaco.editor.create(
       document.getElementById("editor") || new HTMLElement(),
       {
@@ -191,14 +190,12 @@ export default Vue.extend({
       this.selfPeer.on("signal", (data: any) => {
         this.ws.send(JSON.stringify({ type: 0, data: JSON.stringify(data) }));
       });
-      this.selfPeer.on("connect", (data: any) => {
-        console.log("onConnect", data);
-      });
       this.selfPeer.on("stream", (stream: any) => {
         stream.oninactive = () => {
           for (let i = 0; i < this.streams.length; i++) {
             if (this.streams[i].id == stream.id) {
-              delete this.streams[i];
+              this.streams.splice(i,1);
+              return;
             }
           }
         };
@@ -249,6 +246,13 @@ export default Vue.extend({
       }
       return "ATTENTION REQUIRED";
     };
+
+    // after everything
+    try {
+      this.langs = await fetchCodeList();
+    } catch (error) {
+      console.log(error);
+    }
   }
 });
 </script>

@@ -1,7 +1,7 @@
+import { getConfig } from '@/api/config';
 import Vue from "vue";
 import VueRouter, { RouteConfig } from "vue-router";
 import Home from "../views/Home.vue";
-import { nextTick } from "vue/types/umd";
 
 Vue.use(VueRouter);
 
@@ -10,7 +10,7 @@ const routes: Array<RouteConfig> = [
     path: "/",
     name: "Home",
     meta: {
-      title: "Home"
+      // title: "Home"
     },
     component: Home
   },
@@ -30,9 +30,12 @@ const router = new VueRouter({
   routes
 });
 
-router.beforeEach(function(from, to, next) {
-  document.title =
-    (from.meta.title ? from.meta.title + " | " : "") + "Hello Engineer";
+router.beforeEach(async function (from, to, next) {
+  const config = await getConfig()
+  document.title = (from.meta.title ? from.meta.title + " | " : "") + config.name;
+  if (!from.meta.title) {
+    document.title += " - " + config.desc
+  }
   next();
 });
 

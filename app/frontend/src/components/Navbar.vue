@@ -2,8 +2,8 @@
   <nav class="navbar">
     <div class="container">
       <a href="javascript:void(0)" @click="to('/')" class="navbar-brand">
-        <img src="/favicon.png" alt="Hello Engineer" />
-        Hello Engineer
+        <img src="/favicon.png" :alt="config.name" />
+        {{ config.name }}
       </a>
       <ul class="navbar-nav d-none d-flex">
         <li class="nav-item">
@@ -58,14 +58,23 @@
 <script lang="ts">
 import Vue from "vue";
 import { mapState } from "vuex";
+import { getConfig } from "../api/config";
 
 export default Vue.extend({
   name: "Navbar",
+  data() {
+    return {
+      config: {}
+    };
+  },
   computed: {
     ...mapState({
       user: "user",
       darkMode: "darkMode"
     })
+  },
+  async mounted() {
+    this.config = await getConfig();
   },
   methods: {
     wOpen(url: string) {
