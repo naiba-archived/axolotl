@@ -91,6 +91,26 @@ export default Vue.extend({
     }
   },
   methods: {
+    handlePeer(peer: any, onClose: any) {
+      peer.on("error", (err: any) => {
+        console.log("peer error, create a new peer", err);
+        onClose();
+      });
+      peer.on("signal", (data: any) => {
+        this.ws.send(JSON.stringify({ type: 0, data: JSON.stringify(data) }));
+      });
+      peer.on("stream", (stream: any) => {
+        stream.oninactive = () => {
+          for (let i = 0; i < this.streams.length; i++) {
+            if (this.streams[i].id == stream.id) {
+              this.streams.splice(i, 1);
+              return;
+            }
+          }
+        };
+        this.streams.push(stream);
+      });
+    },
     async execute() {
       if (this.executing) {
         return;
@@ -187,20 +207,15 @@ export default Vue.extend({
         initiator: true,
         stream: stream
       });
-      this.selfPeer.on("signal", (data: any) => {
-        this.ws.send(JSON.stringify({ type: 0, data: JSON.stringify(data) }));
-      });
-      this.selfPeer.on("stream", (stream: any) => {
-        stream.oninactive = () => {
-          for (let i = 0; i < this.streams.length; i++) {
-            if (this.streams[i].id == stream.id) {
-              this.streams.splice(i,1);
-              return;
-            }
-          }
-        };
-        this.streams.push(stream);
-      });
+      const initPeer = () => {
+        console.log("initPeer");
+        this.selfPeer = new Peer({
+          initiator: true,
+          stream: stream
+        });
+        this.handlePeer(this.selfPeer, initPeer);
+      };
+      this.handlePeer(this.selfPeer, initPeer);
     };
     this.ws.onclose = (e: any) => {
       console.log("onclose", e);
@@ -236,15 +251,6 @@ export default Vue.extend({
         default:
           break;
       }
-    };
-
-    // on close warning
-    window.onbeforeunload = function(e: any) {
-      const ee = e || window.event;
-      if (ee) {
-        ee.returnValue = "ATTENTION REQUIRED";
-      }
-      return "ATTENTION REQUIRED";
     };
 
     // after everything
