@@ -18,6 +18,6 @@ const (
 )
 
 type WsMsg struct {
-	Type uint   `json:"type"`
-	Data string `json:"data"`
+	Type uint        `json:"type"`
+	Data interface{} `json:"data"`
 }

@@ -56,11 +56,11 @@ import Hello from "@/components/Hello.vue";
 import Peer from "simple-peer";
 import * as monaco from "monaco-editor";
 import * as Y from "yjs";
-import { WebrtcProvider } from "y-webrtc";
 import { MonacoBinding } from "y-monaco";
 import { executeCode, fetchCodeList } from "../api/code";
 import Clipboard from "clipboard";
 import halfmoon from "halfmoon";
+import YWS from "../utils/y-ws";
 
 export default Vue.extend({
   name: "Meeting",
@@ -171,21 +171,6 @@ export default Vue.extend({
         language: "php"
       }
     );
-    const ydocument = new Y.Doc();
-    const provider = new WebrtcProvider(
-      this.$router.currentRoute.params.id,
-      ydocument,
-      {
-        password: window.location.host
-      } as any
-    );
-    const type = ydocument.getText("monaco");
-    new MonacoBinding(
-      type,
-      this.editor.getModel(),
-      new Set([this.editor]),
-      provider.awareness
-    );
 
     // init websocket
     this.ws = new WebSocket(
@@ -195,7 +180,19 @@ export default Vue.extend({
         "/ws/" +
         this.$router.currentRoute.params.id
     );
+    const ydocument = new Y.Doc();
+    const type = ydocument.getText("monaco");
+    const yws = new YWS(ydocument, (data: any) => {
+      this.ws.send(JSON.stringify({ type: 3, data: data }));
+    });
+    const binding = new MonacoBinding(
+      type,
+      this.editor.getModel(),
+      new Set([this.editor]),
+      yws.awareness
+    );
     this.ws.onopen = async (e: any) => {
+      yws.onOpen();
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {
           width: 160,
@@ -246,6 +243,10 @@ export default Vue.extend({
             out = data.data;
           }
           this.log = out + "\n" + this.log;
+          break;
+
+        case 3:
+          yws.onMessage(data.data);
           break;
 
         default:
