@@ -182,8 +182,8 @@ export default Vue.extend({
     );
     const ydocument = new Y.Doc();
     const type = ydocument.getText("monaco");
-    const yws = new YWS(ydocument, (data: any) => {
-      this.ws.send(JSON.stringify({ type: 3, data: data }));
+    const yws = new YWS(ydocument, (data: Uint8Array) => {
+      this.ws.send(data);
     });
     const binding = new MonacoBinding(
       type,
@@ -215,10 +215,13 @@ export default Vue.extend({
       this.handlePeer(this.selfPeer, initPeer);
     };
     this.ws.onclose = (e: any) => {
-      console.log("onclose", e);
       this.ws = null;
     };
-    this.ws.onmessage = (e: any) => {
+    this.ws.onmessage = (e: MessageEvent) => {
+      if (e.data instanceof Blob) {
+        yws.onMessage(e.data);
+        return;
+      }
       const data = JSON.parse(e.data);
       let signal;
       switch (data.type) {
@@ -243,10 +246,6 @@ export default Vue.extend({
             out = data.data;
           }
           this.log = out + "\n" + this.log;
-          break;
-
-        case 3:
-          yws.onMessage(data.data);
           break;
 
         default:

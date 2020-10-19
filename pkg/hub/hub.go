@@ -7,6 +7,7 @@ import (
 )
 
 type Message struct {
+	Type  uint
 	Data  []byte
 	Topic string
 	From  *websocket.Conn
@@ -73,7 +74,14 @@ func (h *Hub) Serve() {
 					if c == m.From {
 						continue
 					}
-					if c.WriteMessage(websocket.TextMessage, m.Data) == nil {
+					var err error
+					switch m.Type {
+					case websocket.BinaryMessage:
+						err = c.WriteMessage(websocket.BinaryMessage, m.Data)
+					default:
+						err = c.WriteMessage(websocket.TextMessage, m.Data)
+					}
+					if err == nil {
 						continue
 					}
 				}

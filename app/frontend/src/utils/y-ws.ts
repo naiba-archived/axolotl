@@ -51,8 +51,9 @@ class YWS {
         this.send = send
         this.doc = doc
         this.awareness = awareness
-        this.awareness.on('update', this._awarenessUpdateHandler)
         this.synced = false
+        this.doc.on('update', this._updateHandler)
+        this.awareness.on('update', this._awarenessUpdateHandler)
     }
 
     onOpen() {
@@ -68,17 +69,23 @@ class YWS {
         }
     }
 
-    onMessage(data: any) {
-        const encoder = readMessage(this, new Uint8Array(data), true)
+    async onMessage(data: Blob) {
+        const buf = await data.arrayBuffer();
+        const encoder = readMessage(this, new Uint8Array(buf), true)
         if (encoding.length(encoder) > 1) {
             this.send(encoding.toUint8Array(encoder))
         }
     }
 
-    /**
-     * @param {any} changed
-     * @param {any} origin
-     */
+    _updateHandler = (update: any, origin: any) => {
+        if (origin !== this || origin === null) {
+            const encoder = encoding.createEncoder()
+            encoding.writeVarUint(encoder, messageSync)
+            syncProtocol.writeUpdate(encoder, update)
+            this.send(encoding.toUint8Array(encoder))
+        }
+    }
+
     _awarenessUpdateHandler = ({ added, updated, removed }: any, origin: any) => {
         const changedClients = added.concat(updated).concat(removed)
         const encoder = encoding.createEncoder()

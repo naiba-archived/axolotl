@@ -12,17 +12,14 @@ import (
 
 func WS(pubsub *hub.Hub) func(c *websocket.Conn) {
 	return func(c *websocket.Conn) {
-		c.SetPingHandler(c.PingHandler())
-		c.SetPongHandler(c.PongHandler())
 		roomID := c.Params("meetingID")
 		pubsub.Subscribe <- hub.Subscription{
 			Conn:  c,
 			Topic: roomID,
 		}
 		var m model.WsMsg
-		var err error
 		for {
-			err = c.ReadJSON(&m)
+			mType, data, err := c.ReadMessage()
 			if err != nil {
 				if !websocket.IsCloseError(err) && !websocket.IsUnexpectedCloseError(err) {
 					util.Infof(0, "websocket error: %+v", err)
@@ -30,13 +27,22 @@ func WS(pubsub *hub.Hub) func(c *websocket.Conn) {
 				c.Close()
 				break
 			}
-			if err == nil {
-				data, err := json.Marshal(m)
-				if err != nil {
-					util.Errorf(0, "%+v", err)
-					continue
+			if mType == websocket.TextMessage {
+				if err = json.Unmarshal(data, &m); err == nil {
+					data, err := json.Marshal(m)
+					if err != nil {
+						util.Errorf(0, "%+v", err)
+						continue
+					}
+					pubsub.Broadcast <- hub.Message{
+						Topic: roomID,
+						Data:  data,
+						From:  c,
+					}
 				}
+			} else if mType == websocket.BinaryMessage {
 				pubsub.Broadcast <- hub.Message{
+					Type:  websocket.BinaryMessage,
 					Topic: roomID,
 					Data:  data,
 					From:  c,
