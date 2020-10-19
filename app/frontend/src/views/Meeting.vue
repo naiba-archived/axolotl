@@ -5,7 +5,7 @@
         <div class="col-12">
           <div class="code-runner row justify-content-between">
             <div class="col-4">
-              <select v-model="lang" @change="chooseLang" class="form-control">
+              <select :disabled="streams.length == 0" v-model="lang" @change="chooseLang" class="form-control">
                 <option value="" selected="selected" disabled="disabled">
                   Select Programming Language
                 </option>
@@ -109,6 +109,9 @@ export default Vue.extend({
           }
         };
         this.streams.push(stream);
+        if (this.lang) {
+          this.ws.send(JSON.stringify({ type: 1, data: this.lang }));
+        }
       });
     },
     async execute() {
