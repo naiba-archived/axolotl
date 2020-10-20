@@ -5,9 +5,9 @@ import (
 
 	"github.com/gofiber/websocket/v2"
 
-	"github.com/naiba/helloengineer/internal/model"
-	"github.com/naiba/helloengineer/pkg/hub"
-	"github.com/naiba/helloengineer/pkg/util"
+	"github.com/naiba/axolotl/internal/model"
+	"github.com/naiba/axolotl/pkg/hub"
+	"github.com/naiba/axolotl/pkg/util"
 )
 
 func WS(pubsub *hub.Hub) func(c *websocket.Conn) {

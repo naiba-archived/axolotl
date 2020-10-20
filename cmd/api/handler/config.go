@@ -2,7 +2,7 @@ package handler
 
 import (
 	"github.com/gofiber/fiber/v2"
-	"github.com/naiba/helloengineer/internal/model"
+	"github.com/naiba/axolotl/internal/model"
 )
 
 func Config(conf *model.Config) fiber.Handler {

@@ -7,9 +7,9 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 
-	"github.com/naiba/helloengineer/internal/bizerr"
-	"github.com/naiba/helloengineer/internal/model"
-	"github.com/naiba/helloengineer/pkg/util"
+	"github.com/naiba/axolotl/internal/bizerr"
+	"github.com/naiba/axolotl/internal/model"
+	"github.com/naiba/axolotl/pkg/util"
 )
 
 func AuthMiddleware(db *gorm.DB) fiber.Handler {

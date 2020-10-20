@@ -2,7 +2,7 @@ FROM golang:alpine AS binarybuilder
 RUN apk --no-cache --no-progress add \
     gcc \
     musl-dev
-WORKDIR /helloengineer
+WORKDIR /axolotl
 COPY . .
 RUN cd cmd/api \
     && go build -o api -ldflags="-s -w"
@@ -10,10 +10,10 @@ FROM alpine:latest
 RUN apk --no-cache --no-progress add \
     ca-certificates \
     tzdata
-WORKDIR /helloengineer
-COPY dist /helloengineer/dist
-COPY --from=binarybuilder /helloengineer/cmd/api/api ./api
+WORKDIR /axolotl
+COPY dist /axolotl/dist
+COPY --from=binarybuilder /axolotl/cmd/api/api ./api
 
-VOLUME ["/helloengineer/data"]
+VOLUME ["/axolotl/data"]
 EXPOSE 80
-CMD ["/helloengineer/api"]
+CMD ["/axolotl/api"]

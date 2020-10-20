@@ -13,8 +13,8 @@ import (
 	"golang.org/x/oauth2"
 	"gorm.io/gorm"
 
-	"github.com/naiba/helloengineer/internal/model"
-	"github.com/naiba/helloengineer/pkg/util"
+	"github.com/naiba/axolotl/internal/model"
+	"github.com/naiba/axolotl/pkg/util"
 )
 
 func User(c *fiber.Ctx) error {

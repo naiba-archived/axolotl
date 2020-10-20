@@ -9,7 +9,7 @@
         <li class="nav-item">
           <a
             href="javascript:void(0)"
-            @click="wOpen('https://github.com/naiba/helloengineer')"
+            @click="wOpen('https://github.com/naiba/axolotl')"
             class="nav-link"
             >Source Code</a
           >

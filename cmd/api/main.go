@@ -20,10 +20,10 @@ import (
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 
-	"github.com/naiba/helloengineer/cmd/api/handler"
-	"github.com/naiba/helloengineer/internal/model"
-	"github.com/naiba/helloengineer/pkg/hub"
-	"github.com/naiba/helloengineer/pkg/util"
+	"github.com/naiba/axolotl/cmd/api/handler"
+	"github.com/naiba/axolotl/internal/model"
+	"github.com/naiba/axolotl/pkg/hub"
+	"github.com/naiba/axolotl/pkg/util"
 )
 
 var (
@@ -54,7 +54,7 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-	db, err = gorm.Open(sqlite.Open("data/helloengineer.db"), nil)
+	db, err = gorm.Open(sqlite.Open("data/axolotl.db"), nil)
 	if err != nil {
 		panic(err)
 	}

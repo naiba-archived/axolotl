@@ -8,8 +8,8 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 
-	"github.com/naiba/helloengineer/internal/model"
-	"github.com/naiba/helloengineer/pkg/hub"
+	"github.com/naiba/axolotl/internal/model"
+	"github.com/naiba/axolotl/pkg/hub"
 )
 
 func RunCode(conf *model.Config, h *hub.Hub) fiber.Handler {

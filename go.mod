@@ -1,4 +1,4 @@
-module github.com/naiba/helloengineer
+module github.com/naiba/axolotl
 
 go 1.15
 
