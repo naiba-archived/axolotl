@@ -39,17 +39,13 @@ func RunCode(conf *model.Config, h *hub.Hub) fiber.Handler {
 		if err != nil {
 			return err
 		}
-		data, err := json.Marshal(model.WsMsg{
-			Type: model.MsgTypeExecResult,
-			Data: string(body),
-		})
-		if err != nil {
-			return err
-		}
 		h.Broadcast <- hub.Message{
 			Topic: req.Room,
-			Data:  data,
-			From:  nil,
+			Data: model.WsMsg{
+				Type: model.MsgTypeExecResult,
+				Data: string(body),
+			},
+			From: c.Locals(model.KeyAuthorizedUser).(model.User).Nickname,
 		}
 		return nil
 	}

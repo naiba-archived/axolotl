@@ -3,11 +3,11 @@ const proxyConfig = {
   ws: true,
   changeOrigin: true,
   // secure: true,
-  onProxyRes: function(proxyRes, req) {
+  onProxyRes: function (proxyRes, req) {
     const cookies = proxyRes.headers["set-cookie"];
     const cookieRegex = /Domain=localhost/i;
     if (cookies) {
-      const newCookie = cookies.map(function(cookie) {
+      const newCookie = cookies.map(function (cookie) {
         if (cookieRegex.test(cookie)) {
           return cookie.replace(
             cookieRegex,
@@ -25,7 +25,7 @@ const proxyConfig = {
 
 module.exports = {
   pluginOptions: {
-    vconsole: { enable: false }
+    vconsole: { enable: process.env.NODE_ENV != 'production' }
   },
   lintOnSave: false,
   devServer: {

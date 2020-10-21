@@ -107,7 +107,7 @@ func main() {
 	ws := app.Group("/ws")
 	{
 		ws.Use(handler.AuthMiddleware(db), handler.LoginRequired(true))
-		ws.Get("/:meetingID", websocket.New(handler.WS(pubsub)))
+		ws.Get("/:conferenceID", handler.NotInRoom(pubsub), websocket.New(handler.WS(pubsub)))
 	}
 
 	if frontendDevProxyEnv == "" {

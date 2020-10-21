@@ -15,12 +15,12 @@ const routes: Array<RouteConfig> = [
     component: Home
   },
   {
-    path: "/meeting/:id",
-    name: "Meeting",
+    path: "/conference/:id",
+    name: "Conference",
     meta: {
-      title: "Meeting"
+      title: "Conference"
     },
-    component: () => import("../views/Meeting.vue")
+    component: () => import("../views/Conference.vue")
   }
 ];
 

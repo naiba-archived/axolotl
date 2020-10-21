@@ -42,7 +42,7 @@ export default Vue.extend({
       return result;
     },
     startConference() {
-      this.$router.push("/meeting/HE-" + this.makeid(8));
+      this.$router.push("/conference/HE-" + this.makeid(8));
     }
   }
 });

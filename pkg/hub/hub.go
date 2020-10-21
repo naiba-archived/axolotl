@@ -1,26 +1,40 @@
 package hub
 
 import (
+	"encoding/json"
 	"sync"
 
 	"github.com/gofiber/websocket/v2"
+
+	"github.com/naiba/axolotl/internal/model"
 )
 
+type Topic struct {
+	Conns map[string]*websocket.Conn
+	Lang  string
+	Lock  sync.RWMutex
+}
+
+type TopicSerialize struct {
+	Lang string   `json:"lang,omitempty"`
+	User []string `json:"user,omitempty"`
+}
+
 type Message struct {
-	Type  uint
-	Data  []byte
+	Data  interface{}
 	Topic string
-	From  *websocket.Conn
+	From  string
 }
 
 type Subscription struct {
 	Conn  *websocket.Conn
+	User  string
 	Topic string
 }
 
 type Hub struct {
 	TopicsLock  sync.RWMutex
-	Topics      map[string]map[*websocket.Conn]bool
+	Topics      map[string]*Topic
 	Broadcast   chan Message
 	Subscribe   chan Subscription
 	UnSubscribe chan Subscription
@@ -31,8 +45,48 @@ func New() *Hub {
 		Broadcast:   make(chan Message),
 		Subscribe:   make(chan Subscription),
 		UnSubscribe: make(chan Subscription),
-		Topics:      make(map[string]map[*websocket.Conn]bool),
+		Topics:      make(map[string]*Topic),
 	}
+}
+
+func (h *Hub) HasUser(topicID string, user string) bool {
+	h.TopicsLock.RLock()
+	defer h.TopicsLock.RUnlock()
+
+	if topic, has := h.Topics[topicID]; has {
+		topic.Lock.RLock()
+		defer topic.Lock.RUnlock()
+		for onlineUser := range topic.Conns {
+			if user == onlineUser {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
+func (h *Hub) Serialize(topicID string, skip string) TopicSerialize {
+	h.TopicsLock.RLock()
+	defer h.TopicsLock.RUnlock()
+	var topicSerialize TopicSerialize
+	if topic, has := h.Topics[topicID]; has {
+		topic.Lock.RLock()
+		defer topic.Lock.RUnlock()
+		topicSerialize.Lang = topic.Lang
+		for user := range topic.Conns {
+			if user != skip {
+				topicSerialize.User = append(topicSerialize.User, user)
+			}
+		}
+	}
+	return topicSerialize
+}
+
+func (h *Hub) UpdateLang(topicID string, lang string) {
+	h.TopicsLock.Lock()
+	defer h.TopicsLock.Unlock()
+	h.Topics[topicID].Lang = lang
 }
 
 func (h *Hub) Serve() {
@@ -40,58 +94,79 @@ func (h *Hub) Serve() {
 		select {
 		case s := <-h.Subscribe:
 			h.TopicsLock.Lock()
-			connections := h.Topics[s.Topic]
-
-			if connections == nil {
-				connections = make(map[*websocket.Conn]bool)
-				h.Topics[s.Topic] = connections
-			}
-
-			h.Topics[s.Topic][s.Conn] = true
+			topic := h.Topics[s.Topic]
 			h.TopicsLock.Unlock()
+
+			if topic == nil {
+				topic = &Topic{
+					Conns: make(map[string]*websocket.Conn),
+				}
+				topic.Lock.Lock()
+				h.Topics[s.Topic] = topic
+			} else {
+				topic.Lock.Lock()
+			}
+			h.Topics[s.Topic].Conns[s.User] = s.Conn
+			topic.Lock.Unlock()
+
 		case s := <-h.UnSubscribe:
 			h.TopicsLock.Lock()
-			connections := h.Topics[s.Topic]
+			topic := h.Topics[s.Topic]
+			h.TopicsLock.Unlock()
 
-			if connections != nil {
-				if _, ok := connections[s.Conn]; ok {
-					delete(connections, s.Conn)
-					s.Conn.Conn.Close()
-
-					if len(connections) == 0 {
+			topic.Lock.Lock()
+			if topic != nil {
+				if _, ok := topic.Conns[s.User]; ok {
+					delete(topic.Conns, s.User)
+					if s.Conn != nil && s.Conn.Conn != nil {
+						s.Conn.Conn.Close()
+					}
+					if len(topic.Conns) == 0 {
+						h.TopicsLock.Lock()
 						delete(h.Topics, s.Topic)
+						h.TopicsLock.Unlock()
 					}
 				}
 			}
-			h.TopicsLock.Unlock()
+			topic.Lock.Unlock()
+
 		case m := <-h.Broadcast:
 			h.TopicsLock.RLock()
-			connections := h.Topics[m.Topic]
+			topic := h.Topics[m.Topic]
 			h.TopicsLock.RUnlock()
 
-			for c := range connections {
-				if c.Conn != nil {
-					if c == m.From {
-						continue
-					}
-					var err error
-					switch m.Type {
-					case websocket.BinaryMessage:
-						err = c.WriteMessage(websocket.BinaryMessage, m.Data)
-					default:
-						err = c.WriteMessage(websocket.TextMessage, m.Data)
+			topic.Lock.Lock()
+			for u, c := range topic.Conns {
+				if u == m.From {
+					continue
+				}
+				var err error
+				if c != nil && c.Conn != nil {
+					if data, ok := m.Data.(model.WsMsg); ok {
+						data.From = m.From
+						content, err := json.Marshal(data)
+						if err == nil {
+							err = c.WriteMessage(websocket.TextMessage, content)
+						}
+					} else {
+						if data, ok := m.Data.([]byte); ok {
+							err = c.WriteMessage(websocket.BinaryMessage, data)
+						} else {
+							err = c.WriteMessage(websocket.BinaryMessage, []byte{})
+						}
 					}
 					if err == nil {
 						continue
 					}
 				}
-				h.TopicsLock.Lock()
-				delete(connections, c)
-				if len(connections) == 0 {
+				delete(topic.Conns, u)
+				if len(topic.Conns) == 0 {
+					h.TopicsLock.Lock()
 					delete(h.Topics, m.Topic)
+					h.TopicsLock.Unlock()
 				}
-				h.TopicsLock.Unlock()
 			}
+			topic.Lock.Unlock()
 		}
 	}
 }

@@ -5,7 +5,7 @@
         <div class="col-12">
           <div class="code-runner row justify-content-between">
             <div class="col-4">
-              <select :disabled="streams.length == 0" v-model="lang" @change="chooseLang" class="form-control">
+              <select v-model="lang" @change="chooseLang" class="form-control">
                 <option value="" selected="selected" disabled="disabled">
                   Select Programming Language
                 </option>
@@ -34,16 +34,13 @@
           </textarea>
         </div>
       </div>
-      <Hello
-        v-if="selfPeer.streams"
-        :muted="true"
-        :stream="selfPeer.streams[0]"
-      />
-      <Hello
-        v-for="(stream, index) in streams"
-        :stream="stream"
-        v-bind:key="index"
-      />
+      <Hello v-if="localStream" :muted="true" :stream="localStream" />
+      <div v-for="(item, index) in peersArray" v-bind:key="index">
+        <Hello
+          v-if="item.peer._remoteStreams.length"
+          :stream="item.peer._remoteStreams[0]"
+        />
+      </div>
     </div>
     <div class="sticky-alerts"></div>
   </div>
@@ -63,7 +60,7 @@ import halfmoon from "halfmoon";
 import YWS from "../utils/y-ws";
 
 export default Vue.extend({
-  name: "Meeting",
+  name: "Conference",
   components: {
     Hello
   },
@@ -76,14 +73,24 @@ export default Vue.extend({
       log: "Waiting for execution",
       langs: {} as any,
       editor: {} as any,
-      streams: [] as any,
-      selfPeer: {} as any
+      peers: {} as any,
+      localStream: undefined as any
     };
   },
   computed: {
     ...mapState({
       darkMode: "darkMode"
-    })
+    }),
+    peersArray() {
+      var arr = [] as any;
+      Object.keys(this.peers).forEach((k: any) => {
+        arr.push({
+          name: k,
+          peer: this.peers[k]
+        });
+      });
+      return arr;
+    }
   },
   watch: {
     darkMode() {
@@ -91,29 +98,6 @@ export default Vue.extend({
     }
   },
   methods: {
-    handlePeer(peer: any, onClose: any) {
-      peer.on("error", (err: any) => {
-        console.log("peer error, create a new peer", err);
-        onClose();
-      });
-      peer.on("signal", (data: any) => {
-        this.ws.send(JSON.stringify({ type: 0, data: JSON.stringify(data) }));
-      });
-      peer.on("stream", (stream: any) => {
-        stream.oninactive = () => {
-          for (let i = 0; i < this.streams.length; i++) {
-            if (this.streams[i].id == stream.id) {
-              this.streams.splice(i, 1);
-              return;
-            }
-          }
-        };
-        this.streams.push(stream);
-        if (this.lang) {
-          this.ws.send(JSON.stringify({ type: 1, data: this.lang }));
-        }
-      });
-    },
     async execute() {
       if (this.executing) {
         return;
@@ -146,10 +130,7 @@ export default Vue.extend({
     }
   },
   beforeDestroy() {
-    this.selfPeer.streams.forEach((stream: any) => {
-      stream.getTracks().forEach((track: any) => track.stop());
-    });
-    this.selfPeer.destroy();
+    this.localStream.getTracks().forEach((track: any) => track.stop());
   },
   async mounted() {
     halfmoon.onDOMContentLoaded();
@@ -171,7 +152,7 @@ export default Vue.extend({
         value: "",
         fontSize: 18,
         theme: this.darkMode ? "vs-dark" : "vs",
-        language: "php"
+        language: "go"
       }
     );
 
@@ -186,7 +167,7 @@ export default Vue.extend({
     const ydocument = new Y.Doc();
     const type = ydocument.getText("monaco");
     const yws = new YWS(ydocument, (data: Uint8Array) => {
-      this.ws.send(data);
+      if (this.ws) this.ws.send(data);
     });
     const binding = new MonacoBinding(
       type,
@@ -196,26 +177,14 @@ export default Vue.extend({
     );
     this.ws.onopen = async (e: any) => {
       yws.onOpen();
-      const stream = await navigator.mediaDevices.getUserMedia({
+      this.localStream = await navigator.mediaDevices.getUserMedia({
         video: {
           width: 160,
           height: 90
         },
         audio: true
       });
-      this.selfPeer = new Peer({
-        initiator: true,
-        stream: stream
-      });
-      const initPeer = () => {
-        console.log("initPeer");
-        this.selfPeer = new Peer({
-          initiator: true,
-          stream: stream
-        });
-        this.handlePeer(this.selfPeer, initPeer);
-      };
-      this.handlePeer(this.selfPeer, initPeer);
+      console.log("local stream", this.localStream);
     };
     this.ws.onclose = (e: any) => {
       this.ws = null;
@@ -230,7 +199,9 @@ export default Vue.extend({
       switch (data.type) {
         case 0:
           signal = JSON.parse(data.data);
-          this.selfPeer.signal(signal);
+          if (this.peers[data.from]) {
+            this.peers[data.from].signal(signal);
+          }
           break;
 
         case 1:
@@ -249,6 +220,82 @@ export default Vue.extend({
             out = data.data;
           }
           this.log = out + "\n" + this.log;
+          break;
+
+        case 3:
+          if (this.peers[data.from]) {
+            this.peers[data.from].streams.forEach((stream: any) => {
+              stream.getTracks().forEach((track: any) => track.stop());
+            });
+            this.peers[data.from].destroy();
+          }
+          const peer = new Peer({
+            stream: this.localStream
+          });
+          peer.on("connect", () => {
+            console.log("passive peer connected", data.from, this.peers);
+          });
+          peer.on("error", (err: any) => {
+            Vue.delete(this.peers, data.from);
+            console.log(
+              "passive peer disconnected",
+              data.from,
+              err,
+              this.peers
+            );
+          });
+          peer.on("stream", (stream: any) => {
+            console.log("passive peer stream", data.from, stream, this.peers);
+          });
+          peer.on("signal", (signal: any) => {
+            this.ws.send(
+              JSON.stringify({ type: 0, data: JSON.stringify(signal) })
+            );
+          });
+          Vue.set(this.peers, data.from, peer);
+          console.log("create passive peer", this.peers);
+          break;
+
+        case 4:
+          // 设置所选语言
+          this.lang = data.data.lang;
+          monaco.editor.setModelLanguage(
+            this.editor.getModel(),
+            this.lang.split(":")[0]
+          );
+          // 创建各个 Peer
+          if (data.data.user) {
+            for (let i = 0; i < data.data.user.length; i++) {
+              const fromUser = data.data.user[i];
+              const peer = new Peer({
+                initiator: true
+              });
+              peer.on("connect", (conn: any) => {
+                peer.addStream(this.localStream);
+                console.log("active peer connect", fromUser, conn, peer);
+                Vue.set(this.peers, fromUser, peer);
+              });
+              peer.on("stream", (stream: any) => {
+                console.log("active peer stream", fromUser, stream, this.peers);
+              });
+              peer.on("error", (err: any) => {
+                Vue.delete(this.peers, fromUser);
+                console.log(
+                  "active peer disconnected",
+                  fromUser,
+                  err,
+                  this.peers
+                );
+              });
+              peer.on("signal", (signal: any) => {
+                this.ws.send(
+                  JSON.stringify({ type: 0, data: JSON.stringify(signal) })
+                );
+              });
+              Vue.set(this.peers, fromUser, peer);
+              console.log("create active peer", this.peers);
+            }
+          }
           break;
 
         default:
