@@ -87,7 +87,7 @@ func main() {
 		{
 			runner.Use(handler.LoginRequired(true))
 			runner.Get("/list", handler.ListRunner(config))
-			runner.Post("/run", handler.RunCode(config, pubsub))
+			runner.Post("/run", handler.RunCode(config, cache, pubsub))
 		}
 
 		user := api.Group("/user")
