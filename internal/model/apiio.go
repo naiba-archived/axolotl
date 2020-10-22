@@ -20,7 +20,8 @@ type RunCodeRequest struct {
 }
 
 type WsMsg struct {
-	Type uint        `json:"type"`
-	From string      `json:"from"`
+	Type uint        `json:"type"` // 消息类型
+	From string      `json:"from"` // 来源
+	To   string      `json:"to"`   // 去向（私聊）
 	Data interface{} `json:"data"`
 }

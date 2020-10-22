@@ -34,11 +34,19 @@
           </textarea>
         </div>
       </div>
-      <Hello v-if="localStream" :muted="true" :stream="localStream" />
+      <Hello
+        v-if="localStream"
+        :muted="true"
+        :nickname="user.nickname"
+        :stream="localStream"
+        :offset="0"
+      />
       <div v-for="(item, index) in peersArray" v-bind:key="index">
         <Hello
           v-if="item.peer._remoteStreams.length"
           :stream="item.peer._remoteStreams[0]"
+          :nickname="item.name"
+          :offset="(index+1) * 5"
         />
       </div>
     </div>
@@ -79,7 +87,8 @@ export default Vue.extend({
   },
   computed: {
     ...mapState({
-      darkMode: "darkMode"
+      darkMode: "darkMode",
+      user: "user"
     }),
     peersArray() {
       var arr = [] as any;
@@ -249,7 +258,11 @@ export default Vue.extend({
           });
           peer.on("signal", (signal: any) => {
             this.ws.send(
-              JSON.stringify({ type: 0, data: JSON.stringify(signal) })
+              JSON.stringify({
+                type: 0,
+                to: data.from,
+                data: JSON.stringify(signal)
+              })
             );
           });
           Vue.set(this.peers, data.from, peer);
@@ -289,7 +302,11 @@ export default Vue.extend({
               });
               peer.on("signal", (signal: any) => {
                 this.ws.send(
-                  JSON.stringify({ type: 0, data: JSON.stringify(signal) })
+                  JSON.stringify({
+                    type: 0,
+                    to: fromUser,
+                    data: JSON.stringify(signal)
+                  })
                 );
               });
               Vue.set(this.peers, fromUser, peer);

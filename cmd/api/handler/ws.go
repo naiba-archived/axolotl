@@ -78,6 +78,19 @@ func WS(pubsub *hub.Hub) func(c *websocket.Conn) {
 			}
 			if mType == websocket.TextMessage {
 				if err = json.Unmarshal(data, &m); err == nil {
+					// 指哪打哪的 WebRTC 信令
+					if m.Type == model.MsgTypePeer {
+						m.From = user
+						to := m.To
+						m.To = ""
+						data, err = json.Marshal(m)
+						if err != nil {
+							continue
+						}
+						pubsub.SendMsgTo(roomID, to, websocket.TextMessage, data)
+						continue
+					}
+					// 其他消息
 					if m.Type == model.MsgTypeChooseProgrammingLanguage {
 						pubsub.UpdateLang(roomID, m.Data.(string))
 					}

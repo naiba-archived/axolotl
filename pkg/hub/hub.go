@@ -12,7 +12,7 @@ import (
 type Topic struct {
 	Conns map[string]*websocket.Conn
 	Lang  string
-	Lock  sync.RWMutex
+	Lock  sync.Mutex
 }
 
 type TopicSerialize struct {
@@ -49,13 +49,31 @@ func New() *Hub {
 	}
 }
 
+func (h *Hub) SendMsgTo(topicID, user string, msgType int, data []byte) {
+	h.TopicsLock.RLock()
+	defer h.TopicsLock.RUnlock()
+
+	if topic, has := h.Topics[topicID]; has {
+		topic.Lock.Lock()
+		defer topic.Lock.Unlock()
+		for onlineUser, conn := range topic.Conns {
+			if user == onlineUser {
+				if conn != nil && conn.Conn != nil {
+					conn.WriteMessage(msgType, data)
+				}
+				return
+			}
+		}
+	}
+}
+
 func (h *Hub) HasUser(topicID string, user string) bool {
 	h.TopicsLock.RLock()
 	defer h.TopicsLock.RUnlock()
 
 	if topic, has := h.Topics[topicID]; has {
-		topic.Lock.RLock()
-		defer topic.Lock.RUnlock()
+		topic.Lock.Lock()
+		defer topic.Lock.Unlock()
 		for onlineUser := range topic.Conns {
 			if user == onlineUser {
 				return true
@@ -71,8 +89,8 @@ func (h *Hub) Serialize(topicID string, skip string) TopicSerialize {
 	defer h.TopicsLock.RUnlock()
 	var topicSerialize TopicSerialize
 	if topic, has := h.Topics[topicID]; has {
-		topic.Lock.RLock()
-		defer topic.Lock.RUnlock()
+		topic.Lock.Lock()
+		defer topic.Lock.Unlock()
 		topicSerialize.Lang = topic.Lang
 		for user := range topic.Conns {
 			if user != skip {
