@@ -45,7 +45,6 @@ func RunCode(conf *model.Config, h *hub.Hub) fiber.Handler {
 				Type: model.MsgTypeExecResult,
 				Data: string(body),
 			},
-			From: c.Locals(model.KeyAuthorizedUser).(model.User).Nickname,
 		}
 		return nil
 	}

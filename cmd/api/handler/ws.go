@@ -42,7 +42,7 @@ func WS(pubsub *hub.Hub) func(c *websocket.Conn) {
 		// 新加入用户：发送当前会议室的最新信息
 		topic := pubsub.Serialize(roomID, user)
 		if topic.Lang == "" {
-			topic.Lang = "go"
+			topic.Lang = "go:latest"
 		}
 		data, err := json.Marshal(model.WsMsg{
 			Type: model.MsgTypeInitRoom,
