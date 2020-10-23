@@ -140,7 +140,7 @@ export default Vue.extend({
   },
   beforeDestroy() {
     Object.keys(this.peers).forEach((k: any) => {
-      this.peers[k].streams.forEach(stream => {
+      this.peers[k].streams.forEach((stream: any) => {
         console.log("beforeDestroy", k, stream);
         stream.getTracks().forEach((track: any) => track.stop());
       });
