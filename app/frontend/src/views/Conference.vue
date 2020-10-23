@@ -342,8 +342,12 @@ export default Vue.extend({
 });
 </script>
 <style lang="scss" scoped>
+.page-wrapper {
+  margin-bottom: 30px;
+  position: unset;
+}
 #editor {
-  height: calc(85vh);
+  height: calc(100vh - 182px);
 }
 textarea {
   height: 100%;

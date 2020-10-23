@@ -6,14 +6,14 @@
         {{ config.name }}
       </a>
       <ul class="navbar-nav d-none d-flex">
-        <li class="nav-item">
+        <!-- <li class="nav-item">
           <a
             href="javascript:void(0)"
             @click="wOpen('https://github.com/naiba/axolotl')"
             class="nav-link"
             >Source Code</a
           >
-        </li>
+        </li> -->
       </ul>
       <div class="d-none d-flex ml-auto">
         <button class="btn btn-action mr-5" @click="toggleDarkMode">
@@ -58,23 +58,18 @@
 <script lang="ts">
 import Vue from "vue";
 import { mapState } from "vuex";
-import { getConfig } from "../api/config";
 
 export default Vue.extend({
   name: "Navbar",
   data() {
-    return {
-      config: {}
-    };
+    return {};
   },
   computed: {
     ...mapState({
       user: "user",
-      darkMode: "darkMode"
+      darkMode: "darkMode",
+      config: "config"
     })
-  },
-  async mounted() {
-    this.config = await getConfig();
   },
   methods: {
     wOpen(url: string) {

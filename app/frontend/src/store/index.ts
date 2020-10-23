@@ -4,6 +4,7 @@ import createPersistedState from "vuex-persistedstate";
 import { fetchUser, logout as logoutReq } from "@/api/user";
 import router from "@/router";
 import halfmoon from "halfmoon";
+import { getConfig } from '@/api/config';
 
 Vue.use(Vuex);
 
@@ -19,7 +20,8 @@ export default new Vuex.Store({
       nickname: String,
       githubId: Number,
       authority: Authority
-    }
+    },
+    config: {},
   },
   mutations: {
     update(state, payload) {
@@ -27,6 +29,10 @@ export default new Vuex.Store({
     }
   },
   actions: {
+    async fetchConfig({ commit }) {
+      const config = await getConfig();
+      commit("update", { config });
+    },
     async fetchUser({ commit }) {
       try {
         const user = await fetchUser();

@@ -1,10 +1,12 @@
 <template>
-  <div class="container h-600">
+  <div class="container">
     <div class="row h-full">
       <div class="col"></div>
-      <div class="col align-self-center">
-        <img width="500rem" src="axolotl.jpg" />
-        <p class="font-smaller text-center">The curious Axolotl species of salamander. Public domain photo</p>
+      <div class="col align-self-center text-center">
+        <img width="300rem" src="axolotl.jpg" />
+        <p class="font-smaller text-center">
+          The curious Axolotl species of salamander. Public domain photo
+        </p>
         <button
           @click="startConference"
           :disabled="!user.id"
@@ -48,4 +50,7 @@ export default Vue.extend({
 });
 </script>
 <style lang="scss" scoped>
+div.container {
+  height: calc(100vh - 100px);
+}
 </style>

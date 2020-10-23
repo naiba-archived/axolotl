@@ -15,6 +15,7 @@
     "axios": "^0.20.0",
     "clipboard": "^2.0.6",
     "core-js": "^3.6.5",
+    "git-describe": "^4.0.4",
     "halfmoon": "^1.0.4",
     "monaco-editor": "^0.20.0",
     "simple-peer": "^9.7.2",
