@@ -46,7 +46,7 @@
           v-if="item.peer._remoteStreams.length"
           :stream="item.peer._remoteStreams[0]"
           :nickname="item.name"
-          :offset="(index+1) * 5"
+          :offset="(index + 1) * 5"
         />
       </div>
     </div>
@@ -139,6 +139,12 @@ export default Vue.extend({
     }
   },
   beforeDestroy() {
+    Object.keys(this.peers).forEach((k: any) => {
+      this.peers[k].streams.forEach(stream => {
+        console.log("beforeDestroy", k, stream);
+        stream.getTracks().forEach((track: any) => track.stop());
+      });
+    });
     this.localStream.getTracks().forEach((track: any) => track.stop());
   },
   async mounted() {
@@ -198,7 +204,7 @@ export default Vue.extend({
     this.ws.onclose = (e: any) => {
       this.ws = null;
     };
-    this.ws.onmessage = (e: MessageEvent) => {
+    this.ws.onmessage = async (e: MessageEvent) => {
       if (e.data instanceof Blob) {
         yws.onMessage(e.data);
         return;
@@ -281,10 +287,16 @@ export default Vue.extend({
             for (let i = 0; i < data.data.user.length; i++) {
               const fromUser = data.data.user[i];
               const peer = new Peer({
-                initiator: true
+                initiator: true,
+                stream: await navigator.mediaDevices.getUserMedia({
+                  video: {
+                    width: 160,
+                    height: 90
+                  },
+                  audio: true
+                })
               });
               peer.on("connect", (conn: any) => {
-                peer.addStream(this.localStream);
                 console.log("active peer connect", fromUser, conn, peer);
                 Vue.set(this.peers, fromUser, peer);
               });
