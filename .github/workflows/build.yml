@@ -25,9 +25,9 @@ jobs:
           mv app/frontend/dist/* dist/
 
       - name: Log into registry
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login docker.pkg.github.com -u ${{ github.actor }} --password-stdin
+        run: echo "${{ secrets.CR_PAT }}" | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
 
       - name: docker push
         run: |
-          docker build --no-cache -t docker.pkg.github.com/${{ github.repository }}/web .
-          docker push docker.pkg.github.com/${{ github.repository }}/web
+          docker build --no-cache -t ghcr.io/${{ github.repository_owner }}/axolotl .
+          docker push ghcr.io/${{ github.repository_owner }}/axolotl
