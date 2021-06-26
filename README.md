@@ -12,9 +12,9 @@ status: **mvp-dev**, this project is still in the minimum usable development sta
 
 ## Usage
 
-1. `mkdir axolotol && cd axolotol`
+1. `mkdir -p axolotol/{code-data,hello-data} && cd axolotol`
 
-2. `touch code-data/config.json` 
+2. `nano code-data/config.json` 
     ```json
     {
         "clients": {
@@ -25,14 +25,14 @@ status: **mvp-dev**, this project is still in the minimum usable development sta
     }
     ```
 
-3. `hello-data/config.yaml`
+3. `nano hello-data/config.yaml`
     ```yaml
     github:
         clientid: 321d**********97dd
         clientsecret: 85a76*******************8f760
     code:
         endpoint: http://coderunner:3000
-        authorization: Y2xpZW50OmF1dGgta2V5
+        authorization: Y2xpZW50OmF1dGgta2V5 #base64(client:auth-key)
     site:
         name: Axolotol
         desc: Keep Coding
@@ -43,19 +43,19 @@ status: **mvp-dev**, this project is still in the minimum usable development sta
     version: '3.3'
 
     services:
-    axolotl:
+      axolotl:
         image: ghcr.io/naiba/axolotl:latest
         ports:
-        - "8080:80"
+          - "8080:80"
         restart: always
         volumes:
-        - ./hello-data:/axolotl/data/
-    coderunner:
+          - ./hello-data:/axolotl/data/
+      coderunner:
         image: ghcr.io/naiba/code-runner:latest
         restart: always
         volumes:
-        - /var/run/docker.sock:/var/run/docker.sock
-        - ./code-data:/coderunner/data/
+          - /var/run/docker.sock:/var/run/docker.sock
+          - ./code-data:/coderunner/data/
     ```
 
 5. `docker-compose up -d` and visit `ip:8080`
