@@ -12,7 +12,9 @@ status: **mvp-dev**, this project is still in the minimum usable development sta
 
 ## Usage
 
-1. `mkdir -p axolotol/{code-data,hello-data} && cd axolotol`
+0. `sudo docker pull golang:alpine && sudo docker pull frolvlad/alpine-gcc:latest`
+
+1. `mkdir -p axolotol/{code-data/temp,hello-data} && && cd axolotol`
 
 2. `nano code-data/config.json` 
     ```json
@@ -20,7 +22,7 @@ status: **mvp-dev**, this project is still in the minimum usable development sta
         "clients": {
             "client": "auth-key"
         },
-        "temp": "/root/helloengineer/code-data/temp/",
+        "temp": "[这里要放 axolotol 文件夹的绝对路径]/code-data/temp/",
         "limit": false
     }
     ```
