@@ -8,7 +8,7 @@ import (
 
 	"github.com/allegro/bigcache"
 	"github.com/gofiber/fiber/v2"
-	githubapi "github.com/google/go-github/github"
+	githubapi "github.com/google/go-github/v39/github"
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/oauth2"
 	"gorm.io/gorm"
