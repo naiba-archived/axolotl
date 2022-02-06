@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/websocket/v2"
@@ -38,6 +39,16 @@ func WS(pubsub *hub.Hub) func(c *websocket.Conn) {
 			User:  user,
 			Topic: roomID,
 		}
+
+		// ping，防止 CDN 重置 TCP 链接
+		go func() {
+			for {
+				time.Sleep(time.Second * 8)
+				if err := c.WriteMessage(websocket.PingMessage, []byte{}); err != nil {
+					return
+				}
+			}
+		}()
 
 		// 新加入用户：发送当前会议室的最新信息
 		topic := pubsub.Serialize(roomID, user)
