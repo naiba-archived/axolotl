@@ -44,6 +44,9 @@ func WS(pubsub *hub.Hub) func(c *websocket.Conn) {
 		go func() {
 			for {
 				time.Sleep(time.Second * 8)
+				if c == nil || c.Conn == nil {
+					return
+				}
 				if err := c.WriteMessage(websocket.PingMessage, []byte{}); err != nil {
 					return
 				}
