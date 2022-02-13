@@ -5,22 +5,16 @@
         <div class="col-12">
           <div class="code-runner row justify-content-between">
             <div class="col-4">
-              <select v-model="lang" @change="chooseLang" class="form-control">
-                <option value="" selected="selected" disabled="disabled">
-                  Select Programming Language
-                </option>
-                <option v-for="(k, v) in langs" :key="v" :value="v">
-                  {{ v }}
-                </option>
+              <select id="chooseLang" v-model="lang" @change="chooseLang" class="form-control">
+                <option value selected disabled="disabled">Select Programming Language</option>
+                <option v-for="(k, v) in langs" :key="v" :value="v">{{ v }}</option>
               </select>
             </div>
             <div class="col-4">
               <button
                 class="btn clipboard"
                 :data-clipboard-text="conferenceLink"
-              >
-                Share Conference Link
-              </button>
+              >Share Conference Link</button>
               &nbsp;
               <button @click="execute" class="btn">Execute</button>
             </div>
@@ -30,8 +24,7 @@
           <div id="editor"></div>
         </div>
         <div class="col-6">
-          <textarea v-model="log" class="form-control" disabled readonly>
-          </textarea>
+          <textarea v-model="log" class="form-control" disabled readonly></textarea>
         </div>
       </div>
       <Hello
@@ -57,7 +50,7 @@
 <script lang="ts">
 import Vue from "vue";
 import { mapState } from "vuex";
-import Hello from "@/components/Hello.vue";
+import Hello from "../components/Hello.vue";
 import Peer from "simple-peer";
 import * as monaco from "monaco-editor";
 import * as Y from "yjs";
@@ -70,7 +63,7 @@ import YWS from "../utils/y-ws";
 export default Vue.extend({
   name: "Conference",
   components: {
-    Hello
+    Hello,
   },
   data() {
     return {
@@ -82,29 +75,29 @@ export default Vue.extend({
       langs: {} as any,
       editor: {} as any,
       peers: {} as any,
-      localStream: undefined as any
+      localStream: undefined as any,
     };
   },
   computed: {
     ...mapState({
       darkMode: "darkMode",
-      user: "user"
+      user: "user",
     }),
     peersArray() {
       var arr = [] as any;
       Object.keys(this.peers).forEach((k: any) => {
         arr.push({
           name: k,
-          peer: this.peers[k]
+          peer: this.peers[k],
         });
       });
       return arr;
-    }
+    },
   },
   watch: {
     darkMode() {
       monaco.editor.setTheme(this.darkMode ? "vs-dark" : "vs");
-    }
+    },
   },
   methods: {
     async execute() {
@@ -113,7 +106,6 @@ export default Vue.extend({
       }
       try {
         this.executing = true;
-        let out = "";
         await executeCode(
           this.$router.currentRoute.params.id,
           this.editor.getValue(),
@@ -133,10 +125,8 @@ export default Vue.extend({
       if (this.ws) {
         this.ws.send(JSON.stringify({ type: 1, data: this.lang }));
       }
-      if (this.editor.getValue().trim() == "") {
-        this.editor.setValue(this.langs[this.lang].template);
-      }
-    }
+      this.editor.setValue(this.langs[this.lang].template);
+    },
   },
   beforeDestroy() {
     Object.keys(this.peers).forEach((k: any) => {
@@ -151,12 +141,12 @@ export default Vue.extend({
     halfmoon.onDOMContentLoaded();
     this.conferenceLink = window.location.href;
     const clip = new Clipboard("button.clipboard");
-    clip.on("success", function(e: any) {
+    clip.on("success", function (e: any) {
       halfmoon.initStickyAlert({
         content:
           "The conference link has been copied, please send it to the participants.",
         title: "Successful copied",
-        alertType: "alert-success"
+        alertType: "alert-success",
       });
       e.clearSelection();
     });
@@ -167,7 +157,7 @@ export default Vue.extend({
         value: "",
         fontSize: 18,
         theme: this.darkMode ? "vs-dark" : "vs",
-        language: "go"
+        language: "go",
       }
     );
 
@@ -184,7 +174,7 @@ export default Vue.extend({
     const yws = new YWS(ydocument, (data: Uint8Array) => {
       if (this.ws) this.ws.send(data);
     });
-    const binding = new MonacoBinding(
+    new MonacoBinding(
       type,
       this.editor.getModel(),
       new Set([this.editor]),
@@ -195,9 +185,9 @@ export default Vue.extend({
       this.localStream = await navigator.mediaDevices.getUserMedia({
         video: {
           width: 160,
-          height: 90
+          height: 90,
         },
-        audio: true
+        audio: true,
       });
       console.log("local stream", this.localStream);
     };
@@ -245,7 +235,7 @@ export default Vue.extend({
             this.peers[data.from].destroy();
           }
           const peer = new Peer({
-            stream: this.localStream
+            stream: this.localStream,
           });
           peer.on("connect", () => {
             console.log("passive peer connected", data.from, this.peers);
@@ -267,7 +257,7 @@ export default Vue.extend({
               JSON.stringify({
                 type: 0,
                 to: data.from,
-                data: JSON.stringify(signal)
+                data: JSON.stringify(signal),
               })
             );
           });
@@ -291,10 +281,10 @@ export default Vue.extend({
                 stream: await navigator.mediaDevices.getUserMedia({
                   video: {
                     width: 160,
-                    height: 90
+                    height: 90,
                   },
-                  audio: true
-                })
+                  audio: true,
+                }),
               });
               peer.on("connect", (conn: any) => {
                 console.log("active peer connect", fromUser, conn, peer);
@@ -317,7 +307,7 @@ export default Vue.extend({
                   JSON.stringify({
                     type: 0,
                     to: fromUser,
-                    data: JSON.stringify(signal)
+                    data: JSON.stringify(signal),
                   })
                 );
               });
@@ -335,10 +325,13 @@ export default Vue.extend({
     // after everything
     try {
       this.langs = await fetchCodeList();
+      const langs = Object.keys(this.langs);
+      this.lang = langs[langs.length - 1];
+      this.chooseLang();
     } catch (error) {
       console.log(error);
     }
-  }
+  },
 });
 </script>
 <style lang="scss" scoped>
