@@ -48,7 +48,7 @@
     "typescript": "~3.9.3",
     "vue-cli-plugin-vconsole2": "^1.1.0",
     "vue-template-compiler": "^2.6.11",
-    "webpack": "^5.74.0"
+    "webpack": "^5.76.0"
   },
   "gitHooks": {
     "pre-commit": "lint-staged"
