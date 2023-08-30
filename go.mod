@@ -10,7 +10,7 @@ require (
 	github.com/google/go-github/v39 v39.2.0
 	golang.org/x/crypto v0.7.0
 	golang.org/x/oauth2 v0.0.0-20220309155454-6242fa91716a
-	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
+	gopkg.in/yaml.v3 v3.0.0
 	gorm.io/driver/sqlite v1.3.1
 	gorm.io/gorm v1.23.3
 )
