@@ -23,6 +23,7 @@ jobs:
         run: |
           cd app/frontend
           npm i
+          npx update-browserslist-db@latest
           npm run build
 
       - name: move dist files
